@@ -74,11 +74,17 @@ function verifyToken(token) {
 
 // Middleware Express
 function authMiddleware(req, res, next) {
+  let token;
   const auth = req.headers['authorization'];
-  if (!auth || !auth.startsWith('Bearer ')) {
+  if (auth && auth.startsWith('Bearer ')) {
+    token = auth.slice(7);
+  } else if (req.query.token) {
+    token = req.query.token;
+  }
+
+  if (!token) {
     return res.status(401).json({ error: 'Token requerido' });
   }
-  const token = auth.slice(7);
   const decoded = verifyToken(token);
   if (!decoded) {
     return res.status(401).json({ error: 'Token inválido o expirado' });

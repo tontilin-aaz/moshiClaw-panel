@@ -5,9 +5,12 @@ Panel de control remoto y avanzado para tu PC Ubuntu. Accede desde el navegador 
 ## ✨ Características Principales
 
 - **📊 Monitor del Sistema** — CPU, RAM, disco, temperatura y actividad de red en tiempo real mediante gráficos dinámicos.
+- **📁 Gestor de Archivos** — Navega, sube, descarga, renombra y elimina archivos remotos de tu PC visualmente.
+- **📷 Webcam Stream** — Captura de imágenes instantáneas de la cámara conectada a tu PC de forma remota.
 - **💻 Terminal Integrada** — Shell completo en el navegador (xterm.js + node-pty) con las mismas capacidades de un emulador de terminal nativo.
-- **🖥️ Escritorio Remoto** — Streaming de pantalla en tiempo real (X11 vía ffmpeg) integrado en la web.
+- **🖥️ Escritorio Remoto** — Streaming de pantalla en tiempo real (X11 vía ffmpeg) integrado en la web con soporte de teclado y mouse.
 - **🤖 Asistente IA (Gemini/DeepSeek)** — Un chat potenciado por IA capaz de ejecutar comandos de forma autónoma en tu PC si se lo permites.
+- **🔔 Notificaciones Push** — Alertas instantáneas en tu dispositivo si la CPU o RAM de tu PC superan límites críticos.
 
 ---
 

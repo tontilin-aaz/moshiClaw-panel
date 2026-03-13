@@ -81,4 +81,22 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-module.exports = { getStats };
+async function getProcesses() {
+  try {
+    const procs = await si.processes();
+    return procs.list
+      .sort((a, b) => b.pcpu - a.pcpu)
+      .slice(0, 15)
+      .map(p => ({
+        pid: p.pid,
+        name: p.name,
+        cpu: p.pcpu,
+        mem: p.pmem,
+        memRss: formatBytes(p.mem_rss * 1024)
+      }));
+  } catch (err) {
+    return [];
+  }
+}
+
+module.exports = { getStats, getProcesses };

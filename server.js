@@ -16,6 +16,8 @@ const terminal = require('./modules/terminal');
 const screen = require('./modules/screen');
 const ai = require('./modules/ai');
 const browser = require('./modules/browser'); // Nuevo módulo
+const files = require('./modules/files'); // Modulo de archivos
+const webcam = require('./modules/webcam'); // Phase 2: Webcam
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -218,6 +220,26 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   else res.status(500).json({ error: 'Error obteniendo estadísticas' });
 });
 
+// Lista de procesos
+app.get('/api/processes', authMiddleware, async (req, res) => {
+  const procs = await monitoring.getProcesses();
+  res.json({ processes: procs });
+});
+
+// Matar proceso por PID
+app.post('/api/processes/kill', authMiddleware, (req, res) => {
+  const { pid } = req.body;
+  if (!pid || isNaN(parseInt(pid))) {
+    return res.status(400).json({ error: 'PID inválido' });
+  }
+  try {
+    process.kill(parseInt(pid), 'SIGTERM');
+    res.json({ success: true, message: `Proceso ${pid} terminado.` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Captura de pantalla individual
 app.get('/api/screenshot', authMiddleware, async (req, res) => {
   try {
@@ -226,6 +248,77 @@ app.get('/api/screenshot', authMiddleware, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Captura de webcam (Phase 2)
+app.get('/api/webcam-snap', authMiddleware, async (req, res) => {
+  try {
+    const b64 = await webcam.takeWebcamSnapshot();
+    res.json({ image: b64, timestamp: Date.now() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── RUTAS DE FILES ───────────────────────────────────────────────────────────
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      try {
+          // Use safeResolve internal logic locally for multer
+          const base = '/';
+          const p = req.body.path || '.';
+          const target = path.resolve(base, p);
+          if (!target.startsWith(path.resolve(base))) throw new Error("Invalid path");
+          cb(null, target);
+      } catch (err) {
+          cb(err);
+      }
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  }
+});
+const upload = multer({ storage: storage });
+
+app.get('/api/files/list', authMiddleware, async (req, res) => {
+    try {
+        const items = await files.listFiles(req.query.path || '/');
+        res.json({ success: true, items });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/files/download', authMiddleware, (req, res) => {
+    try {
+        const target = files.getDownloadPath(req.query.path);
+        res.download(target);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+app.post('/api/files/upload', authMiddleware, upload.array('files'), (req, res) => {
+    res.json({ success: true, message: "Archivos subidos correctamente." });
+});
+
+app.post('/api/files/rename', authMiddleware, async (req, res) => {
+    try {
+        await files.renameFile(req.body.path, req.body.newName);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/files/delete', authMiddleware, async (req, res) => {
+    try {
+         await files.deleteFileOrFolder(req.body.path);
+         res.json({ success: true });
+    } catch(err) {
+         res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 // Health check (sin auth)
