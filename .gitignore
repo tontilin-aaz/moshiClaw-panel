@@ -22,6 +22,10 @@ npm-debug.log*
 # Claude/Agentes
 .claude/
 
+# Datos locales
+data/
+list_models.js
+
 # Builds (por si se agrega frontend build system en el futuro)
 dist/
 build/

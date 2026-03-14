@@ -18,6 +18,9 @@ const ai = require('./modules/ai');
 const browser = require('./modules/browser'); // Nuevo módulo
 const files = require('./modules/files'); // Modulo de archivos
 const webcam = require('./modules/webcam'); // Phase 2: Webcam
+const scripts = require('./modules/scripts'); // Phase 4: Scripts
+const statsHistory = require('./modules/stats_history'); // Phase 4: History
+
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -123,6 +126,10 @@ wsEvents.on('connection', (ws, req, user) => {
       await ai.executeConfirmedTool(data.confirmId, data.toolName, data.args);
     } else if (data.type === 'cancel_tool') {
       ai.cancelToolExecution(data.confirmId);
+    } else if (data.type === 'clear_chat') {
+        ai.clearHistory(data.sessionId || user.user);
+    } else if (data.type === 'stop_chat') {
+        activeAiRequests.delete(data.sessionId || user.user);
     } else if (data.type === 'browser') {
         // Acciones de navegador
         if (data.action === 'launch') await browser.launch();
@@ -139,13 +146,21 @@ wsEvents.on('connection', (ws, req, user) => {
 
   ws.on('close', () => {
     clearInterval(statsInterval);
+    activeAiRequests.delete(user.user);
     console.log(`📡 Events desconectado: ${user.user}`);
   });
 });
 
+// Initialize History
+statsHistory.init(monitoring);
+
+
 // ─── CHAT HANDLER ─────────────────────────────────────────────────────────────
+const activeAiRequests = new Map();
+
 async function handleChatMessage(ws, data, user) {
   const { message, provider, model, apiKey, sessionId, autoExecute } = data;
+  const sId = sessionId || user.user;
 
   if (!message || !provider || !apiKey) {
     ws.send(JSON.stringify({ type: 'chat_error', error: 'Faltan parámetros: message, provider, apiKey' }));
@@ -153,7 +168,10 @@ async function handleChatMessage(ws, data, user) {
   }
 
   // Indicar que está pensando
-  ws.send(JSON.stringify({ type: 'chat_thinking', sessionId }));
+  ws.send(JSON.stringify({ type: 'chat_thinking', sessionId: sId }));
+
+  // Registrar solicitud activa
+  activeAiRequests.set(sId, true);
 
   try {
     const response = await ai.chat({
@@ -161,34 +179,42 @@ async function handleChatMessage(ws, data, user) {
       apiKey,
       model,
       message,
-      sessionId: sessionId || user.user,
+      sessionId: sId,
       autoExecute: !!autoExecute,
       onToolCall: (toolEvent) => {
+        // Verificar si la solicitud fue cancelada
+        if (!activeAiRequests.has(sId)) return;
+
         try {
           if (toolEvent.type === 'browser_screenshot') {
-            // Enviar screenshot directamente al panel (tab Web)
             ws.send(JSON.stringify({ type: 'browser_screenshot', image: toolEvent.image }));
           } else {
-            // Chat tool events (executing, result, needs_confirmation)
-            ws.send(JSON.stringify({ type: 'chat_tool', ...toolEvent, sessionId }));
+            ws.send(JSON.stringify({ type: 'chat_tool', ...toolEvent, sessionId: sId }));
           }
         } catch {}
       }
     });
 
-    ws.send(JSON.stringify({
-      type: 'chat_response',
-      sessionId,
-      content: response,
-      provider
-    }));
+    // Solo enviar respuesta si no fue cancelada
+    if (activeAiRequests.has(sId)) {
+      ws.send(JSON.stringify({
+        type: 'chat_response',
+        sessionId: sId,
+        content: response,
+        provider
+      }));
+      activeAiRequests.delete(sId);
+    }
   } catch (err) {
-    console.error('AI error:', err.message);
-    ws.send(JSON.stringify({
-      type: 'chat_error',
-      sessionId,
-      error: `Error de IA: ${err.message}`
-    }));
+    if (activeAiRequests.has(sId)) {
+      console.error('AI error:', err.message);
+      ws.send(JSON.stringify({
+        type: 'chat_error',
+        sessionId: sId,
+        error: `Error de IA: ${err.message}`
+      }));
+      activeAiRequests.delete(sId);
+    }
   }
 }
 
@@ -220,6 +246,11 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   else res.status(500).json({ error: 'Error obteniendo estadísticas' });
 });
 
+app.get('/api/stats/history', authMiddleware, (req, res) => {
+  res.json({ history: statsHistory.getHistory() });
+});
+
+
 // Lista de procesos
 app.get('/api/processes', authMiddleware, async (req, res) => {
   const procs = await monitoring.getProcesses();
@@ -238,6 +269,33 @@ app.post('/api/processes/kill', authMiddleware, (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// ─── SCRIPTS (Phase 4) ────────────────────────────────────────────────────────
+app.get('/api/scripts', authMiddleware, (req, res) => {
+  res.json({ scripts: scripts.getScripts() });
+});
+
+app.post('/api/scripts/run', authMiddleware, async (req, res) => {
+  const { id } = req.body;
+  try {
+    const result = await scripts.runScript(id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/scripts/add', authMiddleware, (req, res) => {
+  const { name, cmd } = req.body;
+  if (!name || !cmd) return res.status(400).json({ error: 'Faltan datos' });
+  const newScript = scripts.addScript(name, cmd);
+  res.json({ success: true, script: newScript });
+});
+
+app.delete('/api/scripts/:id', authMiddleware, (req, res) => {
+  scripts.deleteScript(req.params.id);
+  res.json({ success: true });
 });
 
 // Captura de pantalla individual
@@ -265,11 +323,10 @@ const multer = require('multer');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
       try {
-          // Use safeResolve internal logic locally for multer
-          const base = '/';
-          const p = req.body.path || '.';
+          const base = '/home/moshi';
+          const p = (req.body.path || '').replace(/^\/+/, '');
           const target = path.resolve(base, p);
-          if (!target.startsWith(path.resolve(base))) throw new Error("Invalid path");
+          if (!target.startsWith(path.resolve(base))) throw new Error("Acción denegada");
           cb(null, target);
       } catch (err) {
           cb(err);
@@ -298,6 +355,16 @@ app.get('/api/files/download', authMiddleware, (req, res) => {
         res.status(500).send(err.message);
     }
 });
+
+app.get('/api/files/preview', authMiddleware, (req, res) => {
+    try {
+        const target = files.getDownloadPath(req.query.path);
+        res.sendFile(target);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
 
 app.post('/api/files/upload', authMiddleware, upload.array('files'), (req, res) => {
     res.json({ success: true, message: "Archivos subidos correctamente." });

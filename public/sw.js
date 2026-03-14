@@ -45,3 +45,25 @@ self.addEventListener('fetch', (e) => {
       .catch(() => caches.match(e.request))
   );
 });
+
+// ── Notificaciones: click abre la app y navega al agente ──────────────────
+self.addEventListener('notificationclick', (event) => {
+  const agentId = event.notification.data?.agentId || null;
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      // Buscar pestaña ya abierta
+      for (const client of list) {
+        if ('focus' in client) {
+          client.postMessage({ type: 'cc_notification_click', agentId });
+          return client.focus();
+        }
+      }
+      // Si no hay ventana abierta, abrir la app
+      return clients.openWindow('/').then(win => {
+        if (win) win.postMessage({ type: 'cc_notification_click', agentId });
+      });
+    })
+  );
+});

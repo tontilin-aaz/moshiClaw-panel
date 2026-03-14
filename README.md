@@ -5,12 +5,16 @@ Panel de control remoto y avanzado para tu PC Ubuntu. Accede desde el navegador 
 ## ✨ Características Principales
 
 - **📊 Monitor del Sistema** — CPU, RAM, disco, temperatura y actividad de red en tiempo real mediante gráficos dinámicos.
+- **📈 Historial de Salud (24h)** — Gráficos históricos que muestran la evolución del uso de recursos durante el último día.
+- **⚙️ Gestor de Procesos** — Visualiza, filtra y finaliza (kill) procesos del sistema directamente desde el panel.
 - **📁 Gestor de Archivos** — Navega, sube, descarga, renombra y elimina archivos remotos de tu PC visualmente.
 - **📷 Webcam Stream** — Captura de imágenes instantáneas de la cámara conectada a tu PC de forma remota.
-- **💻 Terminal Integrada** — Shell completo en el navegador (xterm.js + node-pty) con las mismas capacidades de un emulador de terminal nativo.
-- **🖥️ Escritorio Remoto** — Streaming de pantalla en tiempo real (X11 vía ffmpeg) integrado en la web con soporte de teclado y mouse.
-- **🤖 Asistente IA (Gemini/DeepSeek)** — Un chat potenciado por IA capaz de ejecutar comandos de forma autónoma en tu PC si se lo permites.
-- **🔔 Notificaciones Push** — Alertas instantáneas en tu dispositivo si la CPU o RAM de tu PC superan límites críticos.
+- **🌐 Navegador Automatizado** — Un motor de navegación basado en Puppeteer que permite a la IA interactuar con la web de forma autónoma.
+- **💻 Terminal Integrada** — Shell completo en el navegador (xterm.js + node-pty) con capacidades multitab y soporte de teclado móvil ampliado.
+- **🖥️ Escritorio Remoto** — Streaming de pantalla en tiempo real (X11 vía ffmpeg) con control de mouse y teclado.
+- **🤖 Asistente IA Avanzado** — Chat multi-modelo (Gemini 2.0, DeepSeek R1) capaz de ejecutar comandos, leer archivos, navegar por la web y generar imágenes de forma autónoma.
+- **🌗 Temas Dinámicos** — Soporte nativo para modo Claro y Oscuro con una interfaz premium inspirada en glassmorphism.
+- **🔔 Notificaciones Push** — Alertas instantáneas si la CPU o RAM superan límites críticos.
 
 ---
 
@@ -39,7 +43,7 @@ Panel de control remoto y avanzado para tu PC Ubuntu. Accede desde el navegador 
    ```
 
 > [!NOTE]
-> Al primer arranque, el servidor genera una **contraseña aleatoria** (guardada en el `.env`) que deberás usar en la pantalla de Log In. 
+> Al primer arranque, el servidor genera una **contraseña aleatoria** (guardada en el `.env`) que deberás usar en la pantalla de Log In. Si necesitas forzar una limpieza de caché en la PWA, el botón de **"Limpiar Caché"** en el login te ayudará a ver las últimas novedades.
 
 ---
 
@@ -104,7 +108,11 @@ Usando la URL HTTPS que te brindó Tailscale (ya sea Funnel o Serve):
 
 ## ⚙️ Configurar Inteligencia Artificial
 
-Dentro de la PWA, toca el ícono de engranaje (⚙️) y configura el proveedor que desees usar:
+Dentro de la PWA, toca el ícono de engranaje (⚙️) para configurar:
+
+- **Proveedor:** Elige entre **Gemini (Google)** o **DeepSeek**.
+- **Modelo:** Soporte nativo para `gemini-2.0-flash`, `deepseek-reasoner` (R1) y más.
+- **Auto-ejecutar:** Habilita esta opción para que la IA realice acciones (bash, navegación) sin pedir confirmación previa.
 
 | Proveedor | Obtener API Key |
 |-----------|-----------------|
@@ -112,7 +120,7 @@ Dentro de la PWA, toca el ícono de engranaje (⚙️) y configura el proveedor 
 | **DeepSeek**| [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) |
 
 > [!IMPORTANT]
-> **Privacidad Local:** Las API keys se guardan exclusivamente en el almacenamiento local (`localStorage`) de tu navegador de móvil. **Nunca viajan ni se guardan en el servidor `moshiClaw`.**
+> **Privacidad Local:** Las API keys se guardan exclusivamente en el almacenamiento local (`localStorage`) de tu navegador de móvil. **Nunca viajan ni se guardan en el servidor `moshiClaw`.** Además, el panel soporta la generación de imágenes mediante la herramienta `generate_image` integrada.
 
 ---
 

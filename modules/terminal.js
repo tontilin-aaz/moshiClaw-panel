@@ -17,7 +17,8 @@ function createTerminal(ws, sessionId, cols = 120, rows = 36) {
       ...process.env,
       TERM: 'xterm-256color',
       COLORTERM: 'truecolor',
-      LANG: 'en_US.UTF-8'
+      LANG: 'C.UTF-8',
+      LC_ALL: 'C.UTF-8'
     }
   });
 

@@ -14,20 +14,26 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- xterm.js -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.min.js"></script>
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
+  .xterm-rows { text-decoration: none !important; }
+  .xterm-screen canvas { text-decoration: none !important; }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   /* Bloquear zoom por doble tap en toda la app */
   * { touch-action: manipulation; }
+
+  /* Lucide icon fix */
+  .lucide { width: 1.25em; height: 1.25em; stroke-width: 2.25px; pointer-events: none; }
+  .icon-btn .lucide, .more-item .lucide { margin-right: 0px; }
+  .more-item .lucide { margin-right: 10px; }
+  .tab-icon .lucide { width: 24px; height: 24px; }
 
   :root {
     --bg: #09090b;
@@ -52,6 +58,51 @@
     --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html[data-theme="light"] {
+    --bg: #f5f0e8;
+    --surface: rgba(235, 228, 214, 0.85);
+    --surface-solid: #ebe4d6;
+    --surface2: rgba(220, 210, 192, 0.75);
+    --surface2-solid: #dcd2c0;
+    --surface3: rgba(200, 188, 168, 0.75);
+    --border: rgba(0, 0, 0, 0.10);
+    --border-hover: rgba(0, 0, 0, 0.20);
+    --accent: #2563eb;
+    --accent-glow: rgba(37, 99, 235, 0.3);
+    --accent-hover: #1d4ed8;
+    --accent2: #7c3aed;
+    --green: #059669;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --yellow: #d97706;
+    --text: #1c1917;
+    --text2: #57534e;
+    --text3: #a8a29e;
+  }
+
+  html[data-theme="light"] .stat-card {
+    background: rgba(220, 210, 192, 0.55);
+    border-color: rgba(0,0,0,0.10);
+  }
+  html[data-theme="light"] .stat-card:hover {
+    background: rgba(210, 198, 178, 0.65);
+    border-color: rgba(0,0,0,0.18);
+  }
+  html[data-theme="light"] .chart-card {
+    background: rgba(220, 210, 192, 0.55);
+    border-color: rgba(0,0,0,0.10);
+  }
+  html[data-theme="light"] .chart-card:hover {
+    border-color: rgba(0,0,0,0.18);
+  }
+  html[data-theme="light"] .login-card,
+  html[data-theme="light"] .settings-card {
+    box-shadow: 0 24px 48px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  html[data-theme="light"] .more-menu-overlay {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   }
 
   html, body {
@@ -174,6 +225,7 @@
   #app {
     display: none; flex-direction: column;
     position: fixed; inset: 0;
+    height: 100dvh; /* dvh se ajusta sola al chrome del browser */
     padding-top: var(--safe-top);
   }
   #app.visible { display: flex; }
@@ -204,8 +256,12 @@
   .content { flex: 1; overflow: hidden; position: relative; }
 
   /* Panels */
-  .panel { display: none; height: 100%; overflow: hidden; flex-direction: column; }
+  .panel {
+    display: none; height: 100%; overflow: hidden; flex-direction: column;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
   .panel.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
   /* ─── TAB BAR ───────────────────────────────────────────────────────────── */
   .tab-bar {
@@ -246,8 +302,10 @@
 
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+    background: rgba(30,30,30,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.2s;
   }
+  .stat-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); background: rgba(30,30,30,0.55); }
   .stat-card .stat-label { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
   .stat-card .stat-value { font-size: 26px; font-weight: 700; font-family: var(--font-mono); }
   .stat-card .stat-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
@@ -257,8 +315,10 @@
   .stat-card.net .stat-value { font-size: 14px; color: var(--green); line-height: 1.6; }
 
   .chart-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+    background: rgba(30,30,30,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.2s;
   }
+  .chart-card:hover { border-color: rgba(255,255,255,0.15); }
   .chart-card h3 { font-size: 11px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
   .chart-wrap { height: 80px; position: relative; }
 
@@ -307,15 +367,119 @@
   }
   .mobile-keys::-webkit-scrollbar { display: none; }
   .key-btn {
-    padding: 10px 16px; background: var(--surface3); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); font-size: 14px; cursor: pointer; flex-shrink: 0;
-    min-height: 48px; font-weight: 500; transition: all 0.2s;
+    padding: 8px 12px; background: var(--surface3); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 13px; cursor: pointer; flex-shrink: 0;
+    min-height: 40px; font-weight: 600; transition: all 0.2s; font-family: var(--font-mono);
   }
   .key-btn:active { transform: scale(0.94); background: var(--surface2); }
+  .key-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
   #terminal-container { flex: 1; overflow: hidden; position: relative; min-height: 0; }
   .xterm { height: 100% !important; width: 100% !important; }
   .xterm-viewport { overflow-y: auto !important; }
   .xterm-screen { width: 100% !important; }
+
+  /* ─── PANEL: CLAUDE CODE (multi-agente) ─────────────────────────────────── */
+  #panel-claudecode { overflow: hidden; }
+
+  /* Barra de chips de agentes */
+  #cc-agents-bar {
+    display: flex; align-items: center; gap: 6px; padding: 7px 10px;
+    background: var(--surface-solid); border-bottom: 1px solid var(--border);
+    overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch;
+  }
+  #cc-agents-bar::-webkit-scrollbar { display: none; }
+  .cc-agent-chip {
+    display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+    background: var(--surface2-solid); border: 1px solid var(--border); border-radius: 20px;
+    padding: 4px 6px 4px 8px; cursor: pointer; user-select: none;
+    font-size: 11px; transition: border-color 0.15s, background 0.15s;
+  }
+  .cc-agent-chip.cc-active { border-color: var(--accent2); background: rgba(139,92,246,0.18); }
+  .cc-agent-chip:active { transform: scale(0.95); }
+  .cc-agent-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; transition: background 0.3s;
+  }
+  .cc-agent-chip.s-connecting .cc-agent-dot { background: var(--accent); animation: pulse 1s infinite; }
+  .cc-agent-chip.s-running    .cc-agent-dot { background: var(--yellow); animation: pulse 0.7s infinite; }
+  .cc-agent-chip.s-waiting    .cc-agent-dot { background: var(--orange); }
+  .cc-agent-chip.s-done       .cc-agent-dot { background: var(--green); }
+  .cc-agent-chip.s-error      .cc-agent-dot { background: var(--red); }
+  .cc-chip-label {
+    color: var(--text2); max-width: 90px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  .cc-agent-chip.cc-active .cc-chip-label { color: var(--text); font-weight: 600; }
+  .cc-chip-close {
+    width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; color: var(--text3); border-radius: 50%;
+    cursor: pointer; font-size: 10px; padding: 0; margin-left: 1px; flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .cc-chip-close:hover { background: var(--red); color: #fff; }
+  #cc-add-agent-btn {
+    display: flex; align-items: center; gap: 4px; background: transparent; flex-shrink: 0;
+    border: 1px dashed var(--border-hover); border-radius: 20px;
+    padding: 4px 10px; cursor: pointer; font-size: 11px; color: var(--text3);
+    white-space: nowrap; transition: all 0.15s;
+  }
+  #cc-add-agent-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Vistas */
+  #cc-browser-view, #cc-terminal-view {
+    display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0;
+  }
+  .cc-topbar {
+    display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+    background: var(--surface2); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .cc-path {
+    flex: 1; font-size: 12px; color: var(--accent2); font-family: var(--font-mono);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .cc-path span { cursor: pointer; transition: opacity 0.15s; }
+  .cc-path span:hover { opacity: 0.72; text-decoration: underline; }
+  .cc-open-btn {
+    display: flex; align-items: center; gap: 5px; background: var(--accent2);
+    border: none; color: #fff; padding: 6px 14px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .cc-open-btn:active { opacity: 0.75; transform: scale(0.97); }
+
+  /* Grid de carpetas */
+  #cc-dir-grid {
+    flex: 1; overflow-y: auto; padding: 12px;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; align-content: start;
+  }
+  .cc-dir-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 10px 10px; display: flex; flex-direction: column; align-items: center;
+    gap: 6px; cursor: pointer; position: relative;
+    transition: border-color 0.15s, background 0.15s;
+    min-height: 82px; justify-content: center; overflow: hidden;
+  }
+  .cc-dir-card:active { background: var(--surface2); border-color: var(--accent2); }
+  .cc-dir-name {
+    font-size: 11px; color: var(--text); font-weight: 500;
+    text-align: center; word-break: break-word; line-height: 1.3; max-width: 100%;
+  }
+  .cc-open-dir-btn {
+    position: absolute; top: 6px; right: 6px; background: var(--accent2); border: none;
+    border-radius: 6px; width: 22px; height: 22px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.15s;
+    color: #fff; padding: 0;
+  }
+  .cc-dir-card:hover .cc-open-dir-btn { opacity: 1; }
+  @media (pointer: coarse) { .cc-open-dir-btn { opacity: 0.75; } }
+  .cc-empty {
+    grid-column: 1 / -1; text-align: center; padding: 40px 20px;
+    color: var(--text3); font-size: 13px; line-height: 1.6;
+  }
+
+  /* Contenedor de terminales */
+  #cc-terms-container { flex: 1; overflow: hidden; background: #0d0d0d; min-height: 0; position: relative; }
+  .cc-term-view { display: none; height: 100%; width: 100%; }
+  .cc-term-view.cc-term-active { display: block; }
 
   /* ─── PANEL: SCREEN ─────────────────────────────────────────────────────── */
   #panel-screen { align-items: center; justify-content: center; background: #000; position: relative; overflow: hidden; }
@@ -343,7 +507,8 @@
   #screen-fps { color: var(--green); }
 
   /* ─── PANEL: CHAT ───────────────────────────────────────────────────────── */
-  #panel-chat { display: flex; flex-direction: column; justify-content: flex-end; flex: 1; height: 100%; }
+  #panel-chat.active { display: flex; flex-direction: column; justify-content: flex-end; flex: 1; height: 100%; }
+  #panel-chat { flex-direction: column; justify-content: flex-end; flex: 1; height: 100%; }
   .chat-messages {
     flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;
   }
@@ -412,7 +577,19 @@
     background: var(--surface3); border: 1px solid var(--border); border-radius: 8px;
     padding: 10px; overflow-x: auto; margin: 6px 0;
   }
-  .msg.assistant pre code { background: none; padding: 0; }
+  .msg.assistant img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 8px 0;
+    display: block;
+  }
+  .msg.assistant a.download-link {
+    display: block;
+    margin-top: 8px;
+    color: var(--accent);
+    text-decoration: underline;
+    font-size: 12px;
+  }
 
   /* ─── MOBILE OPTIMIZATIONS ──────────────────────────────────────────────── */
   @media (max-width: 768px) {
@@ -428,11 +605,39 @@
     .form-group input { padding: 16px; font-size: 16px; }
   }
   
-  /* Ocultar tab-bar al abrir teclado para maximizar espacio */
-  body.keyboard-open .tab-bar,
-  #app.keyboard-open .tab-bar {
-    display: none !important;
+  /* Ocultar barra al abrir teclado */
+  .keyboard-open .tab-bar { display: none !important; }
+
+  /* ─── MODALS ────────────────────────────────────────────────────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   }
+  .modal-overlay.open { display: flex; animation: modalFadeIn 0.3s ease; }
+  @keyframes modalFadeIn { from{opacity:0} to{opacity:1} }
+  
+  /* Preview Modal */
+  .preview-content {
+    max-width: 95vw; max-height: 90vh; background: var(--surface-solid);
+    border: 1px solid var(--border); border-radius: 20px; position: relative;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+  }
+  .preview-content img { max-width: 100%; max-height: 70vh; object-fit: contain; }
+  .preview-content .btn-close-modal { position: absolute; top: 12px; right: 12px; z-index: 10; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; float: none; }
+
+  /* Script Item */
+  .script-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    transition: all 0.2s;
+  }
+  .script-item:hover { transform: translateX(4px); border-color: var(--accent-glow); background: var(--surface3); }
+  .script-name { flex: 1; font-weight: 600; font-size: 14px; color: var(--text); }
+  .script-cmd-hint { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-top: 2px; }
+  .btn-run { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .btn-run:active { transform: scale(0.95); }
 </style>
 </head>
 
@@ -442,7 +647,7 @@
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">
-      <span class="eagle">🦅</span>
+      <span class="eagle"><i data-lucide="shield-check" style="width:48px; height:48px; color:var(--accent);"></i></span>
       <h1>MOSHICLAW</h1>
       <p>PANEL DE CONTROL REMOTO</p>
     </div>
@@ -456,7 +661,7 @@
     </div>
     <button class="btn-login" id="btn-login"><span class="btn-text">ENTRAR</span><div class="spinner"></div></button>
     <div class="login-error" id="login-error"></div>
-    <button class="btn-subtle" onclick="forceReloadCache()" title="Limpiar caché y recargar forzadamente">↻ Limpiar Caché y Recargar</button>
+    <button class="btn-subtle" onclick="forceReloadCache()" title="Limpiar caché y recargar forzadamente"><i data-lucide="refresh-cw" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Limpiar Caché y Recargar</button>
   </div>
 </div>
 
@@ -473,8 +678,26 @@
       </select>
     </div>
     <div class="settings-group">
-      <label>Modelo (Opcional)</label>
-      <input type="text" id="cfg-model" placeholder="Ej: gemini-2.0-flash-lite">
+      <label>Modelo</label>
+      <select id="cfg-model-select">
+        <optgroup label="Gemini (Google)">
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+          <option value="gemini-2.0-flash-lite-preview-02-05">Gemini 2.0 Flash Lite</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+          <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+          <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite (Preview)</option>
+        </optgroup>
+        <optgroup label="DeepSeek">
+          <option value="deepseek-chat">DeepSeek Chat</option>
+          <option value="deepseek-reasoner">DeepSeek Reasoner (R1)</option>
+        </optgroup>
+        <option value="custom">Otro (Introducir manualmente...)</option>
+      </select>
+    </div>
+    <div class="settings-group" id="manual-model-group" style="display:none;">
+      <label>Modelo Manual</label>
+      <input type="text" id="cfg-model" placeholder="Ej: gemini-2.0-flash-exp">
     </div>
     <div class="settings-group">
       <label>API Key</label>
@@ -486,6 +709,13 @@
         <div style="font-size:11px;color:var(--text3);margin-top:2px">La IA ejecuta sin pedir confirmación</div>
       </div>
       <button class="toggle" id="toggle-autoexec"></button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div style="font-size:13px;color:var(--text)">Claude Code en navbar</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Agrega sección Claude Code al menú inferior</div>
+      </div>
+      <button class="toggle" id="toggle-claudecode"></button>
     </div>
     <div style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.6">
       🔑 <b>Gemini:</b> aistudio.google.com/apikey<br>
@@ -500,11 +730,12 @@
   <div class="header">
     <div class="header-left">
       <div class="status-dot" id="conn-dot"></div>
-      <span class="header-title">🦅 MOSHICLAW</span>
+      <span class="header-title">MOSHICLAW</span>
     </div>
     <div class="header-right">
-      <button class="icon-btn" id="btn-settings" title="Configuración">⚙️</button>
-      <button class="icon-btn" id="btn-logout" title="Salir">🚪</button>
+      <button class="icon-btn" id="btn-theme" title="Cambiar tema" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
+      <button class="icon-btn" id="btn-settings" title="Configuración"><i data-lucide="settings"></i></button>
+      <button class="icon-btn" id="btn-logout" title="Salir"><i data-lucide="log-out"></i></button>
     </div>
   </div>
 
@@ -517,6 +748,16 @@
         <div class="stat-card temp"><div class="stat-label">RED ↓</div><div class="stat-value net" id="m-net">—</div><div class="stat-sub" id="m-iface">—</div></div>
         <div class="stat-card"><div class="stat-label">OS</div><div class="stat-value" style="font-size:14px;color:var(--green);margin-top:4px" id="m-os">—</div><div class="stat-sub" id="m-host">—</div></div>
       </div>
+      
+      <!-- System Info -->
+      <div class="chart-card">
+        <h3>INFORMACIÓN DEL SISTEMA</h3>
+        <div style="font-size:12px; color:var(--text2); display:flex; flex-direction:column; gap:6px;">
+          <div><b>CPU:</b> <span id="m-cpu-model">—</span></div>
+          <div><b>GPU:</b> <span id="m-gpu">—</span></div>
+          <div><b>Hardware:</b> <span id="m-hw-model">—</span> (<span id="m-hw-make">—</span>)</div>
+        </div>
+      </div>
       <div class="chart-card">
         <h3>CPU %</h3>
         <div class="chart-wrap"><canvas id="chart-cpu"></canvas></div>
@@ -525,7 +766,22 @@
         <h3>RAM %</h3>
         <div class="chart-wrap"><canvas id="chart-ram"></canvas></div>
       </div>
+      <div class="chart-card">
+        <h3>HISTORIAL DE SALUD (24H)</h3>
+        <div class="chart-wrap"><canvas id="chart-history"></canvas></div>
+      </div>
       <div class="disk-list" id="disk-list"></div>
+      
+      <!-- Quick Actions -->
+      <div class="chart-card">
+        <h3>ACCIONES RÁPIDAS</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+           <button class="icon-btn" onclick="quickAction('reboot')" style="width:100%; font-size:12px; gap:8px;"><i data-lucide="refresh-cw"></i> Reiniciar</button>
+           <button class="icon-btn" onclick="quickAction('shutdown')" style="width:100%; font-size:12px; gap:8px; color:var(--red);"><i data-lucide="power"></i> Apagar</button>
+           <button class="icon-btn" onclick="quickAction('clean')" style="width:100%; font-size:12px; gap:8px;"><i data-lucide="eraser"></i> Limpiar Temp</button>
+           <button class="icon-btn" onclick="quickAction('notify')" style="width:100%; font-size:12px; gap:8px;"><i data-lucide="bell"></i> Test Notif</button>
+        </div>
+      </div>
       
       <!-- Process Manager -->
       <div class="chart-card" style="padding-bottom:4px;">
@@ -542,12 +798,18 @@
       <div class="terminal-nav" id="terminal-nav"></div>
       <div id="terminal-container"></div>
       <div class="mobile-keys">
-        <button class="key-btn" onclick="sendKey('Ctrl')">Ctrl</button>
-        <button class="key-btn" onclick="sendKey('Alt')">Alt</button>
-        <button class="key-btn" onclick="sendKey('Esc')">Esc</button>
-        <button class="key-btn" onclick="sendKey('Tab')">Tab</button>
-        <button class="key-btn" onclick="copyTerm()">Copy</button>
-        <button class="key-btn" onclick="pasteTerm()">Paste</button>
+        <button class="key-btn" onclick="toggleTermKey(this, 'Ctrl')">CTRL</button>
+        <button class="key-btn" onclick="toggleTermKey(this, 'Alt')">ALT</button>
+        <button class="key-btn" onclick="sendTermKey('Esc')">ESC</button>
+        <button class="key-btn" onclick="sendTermKey('Tab')">TAB</button>
+        <button class="key-btn" onclick="sendTermKey('Up')">▲</button>
+        <button class="key-btn" onclick="sendTermKey('Down')">▼</button>
+        <button class="key-btn" onclick="sendTermKey('Left')">◀</button>
+        <button class="key-btn" onclick="sendTermKey('Right')">▶</button>
+        <button class="key-btn" onclick="sendTermKey('/')">/</button>
+        <button class="key-btn" onclick="sendTermKey('-')">-</button>
+        <button class="key-btn" onclick="copyTerm()">COPY</button>
+        <button class="key-btn" onclick="pasteTerm()">PASTE</button>
         <button class="key-btn" onclick="newTerminal()">+</button>
       </div>
     </div>
@@ -555,7 +817,7 @@
     <!-- Screen -->
     <div class="panel" id="panel-screen">
       <div id="screen-placeholder">
-        <div class="ph-icon">🖥️</div>
+        <div class="ph-icon"><i data-lucide="monitor" style="width:40px; height:40px;"></i></div>
         <p>Conectando al stream de pantalla...</p>
       </div>
       <canvas id="screen-canvas" style="display:none"></canvas>
@@ -568,7 +830,7 @@
     <!-- Webcam -->
     <div class="panel" id="panel-webcam">
       <div style="padding:10px;text-align:center;background:var(--surface2); border-bottom: 1px solid var(--border);">
-          <button class="icon-btn" onclick="takeWebcamSnap()" style="margin: 0 auto; width: auto; padding: 0 16px;">📷 Capturar Foto de la PC</button>
+          <button class="icon-btn" onclick="takeWebcamSnap()" style="margin: 0 auto; width: auto; padding: 0 16px; gap: 8px;"><i data-lucide="camera"></i> Capturar Foto de la PC</button>
       </div>
       <div id="webcam-viewport" style="flex:1;background:#000;display:flex;align-items:center;justify-content:center">
           <img id="webcam-img" style="max-width:100%;max-height:100%;object-fit:contain;display:none;">
@@ -587,16 +849,15 @@
         </div>
     </div>
 
-    <!-- Files -->
-    <div class="panel" id="panel-files">
-       <div style="padding:10px;display:flex;gap:5px;background:var(--surface2); border-bottom: 1px solid var(--border);">
-            <button class="icon-btn" onclick="fmGoUp()" title="Subir nivel">⬆️</button>
-            <input type="text" id="fm-path" style="flex:1;background:var(--surface);color:white;padding:5px;border:1px solid var(--border);border-radius:4px; font-family: var(--font-mono); font-size: 13px;" value="/">
-            <button class="icon-btn" onclick="fmLoad()" title="Refrescar">🔄</button>
-            <label class="icon-btn" style="cursor:pointer;" title="Subir Archivo">
-                 📤<input type="file" id="fm-upload" style="display:none" onchange="fmUpload(event)" multiple>
-            </label>
-        </div>
+     <div class="panel" id="panel-files">
+        <div style="padding:10px;display:flex;gap:5px;background:var(--surface2); border-bottom: 1px solid var(--border);">
+             <button class="icon-btn" onclick="fmGoUp()" title="Subir nivel"><i data-lucide="arrow-up"></i></button>
+             <input type="text" id="fm-path" style="flex:1;background:var(--surface);color:white;padding:5px;border:1px solid var(--border);border-radius:4px; font-family: var(--font-mono); font-size: 13px;" value="/">
+             <button class="icon-btn" onclick="fmLoad()" title="Refrescar"><i data-lucide="refresh-cw"></i></button>
+             <label class="icon-btn" style="cursor:pointer;" title="Subir Archivo">
+                  <i data-lucide="upload"></i><input type="file" id="fm-upload" style="display:none" onchange="fmUpload(event)" multiple>
+             </label>
+         </div>
         <div id="fm-list" style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
             <!-- File items will go here -->
         </div>
@@ -604,6 +865,12 @@
 
     <!-- Chat -->
     <div class="panel" id="panel-chat">
+      <div style="padding:10px 14px; background:var(--surface2); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; color:var(--text2); font-weight:600; letter-spacing:0.5px;">CHAT IA</span>
+        <button class="icon-btn" onclick="clearChatHistory()" title="Borrar historial" style="width:30px; height:30px; font-size:14px; background:transparent; border:none;">
+          <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
+        </button>
+      </div>
       <div class="chat-messages" id="chat-messages">
         <div class="msg system">Chat con moshiClaw activo. Configurá tu API key en ⚙️</div>
       </div>
@@ -612,22 +879,130 @@
         <button class="btn-send" id="btn-send-chat">➤</button>
       </div>
     </div>
+
+    <!-- Scripts (Phase 4) -->
+    <div class="panel" id="panel-scripts">
+      <div style="padding:10px 14px; background:var(--surface2); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; color:var(--text2); font-weight:600; letter-spacing:0.5px;">BÓVEDA DE SCRIPTS</span>
+        <button class="icon-btn" onclick="showAddScript()" title="Nuevo Script" style="width:30px; height:30px; background:transparent; border:none;">
+          <i data-lucide="plus" style="width:16px; height:16px;"></i>
+        </button>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px;">
+        <div id="scripts-list" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Script items -->
+        </div>
+        <div id="script-output-box" class="chart-card" style="display:none; background: #000; font-family:var(--font-mono); font-size:11px; color:var(--green); min-height:100px; max-height:250px; overflow-y:auto; white-space:pre-wrap; border:1px solid var(--accent-glow);">
+          <div style="color:var(--text3); margin-bottom:8px;">[Salida del Script]</div>
+          <div id="script-output"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Claude Code (multi-agente) -->
+    <div class="panel" id="panel-claudecode">
+
+      <!-- ── Barra de chips de agentes (visible cuando hay ≥1 agente) ── -->
+      <div id="cc-agents-bar" style="display:none;">
+        <!-- chips inyectados por JS -->
+        <button id="cc-add-agent-btn" onclick="ccShowBrowserForNew()">
+          <i data-lucide="plus" style="width:12px;height:12px;"></i> Nuevo agente
+        </button>
+      </div>
+
+      <!-- ── Vista 1: Explorador de carpetas ── -->
+      <div id="cc-browser-view">
+        <div class="cc-topbar">
+          <button class="icon-btn" id="cc-back-btn" onclick="ccGoBack()" title="Atrás" style="width:32px;height:32px;flex-shrink:0;" disabled>
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <div class="cc-path" id="cc-breadcrumb">~/</div>
+          <button class="cc-open-btn" onclick="ccOpenHere()">
+            <i data-lucide="zap" style="width:13px;height:13px;"></i> Abrir aquí
+          </button>
+        </div>
+        <div id="cc-dir-grid"></div>
+      </div>
+
+      <!-- ── Vista 2: Terminal del agente activo ── -->
+      <div id="cc-terminal-view" style="display:none;">
+        <div class="cc-topbar">
+          <button class="icon-btn" onclick="ccShowBrowserForNew()" title="Nuevo agente" style="width:30px;height:30px;flex-shrink:0;">
+            <i data-lucide="folder-open"></i>
+          </button>
+          <div style="flex:1;overflow:hidden;min-width:0;">
+            <div style="font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:1px;">Claude Code</div>
+            <div id="cc-active-path" style="font-size:11px;color:var(--accent2);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/</div>
+          </div>
+          <span id="claudecode-status" style="font-size:10px;color:var(--text3);background:var(--surface);padding:2px 8px;border-radius:99px;border:1px solid var(--border);flex-shrink:0;">—</span>
+          <button class="key-btn" onclick="ccRestartActive()" title="Reiniciar agente" style="font-size:13px;padding:4px 10px;flex-shrink:0;">↻</button>
+        </div>
+        <div id="cc-terms-container"></div>
+        <div class="mobile-keys">
+          <button class="key-btn" id="claude-ctrl-btn" onclick="toggleClaudeKey(this,'Ctrl')">CTRL</button>
+          <button class="key-btn" onclick="sendClaudeKey('Esc')">ESC</button>
+          <button class="key-btn" onclick="sendClaudeKey('Tab')">TAB</button>
+          <button class="key-btn" onclick="sendClaudeKey('Up')">▲</button>
+          <button class="key-btn" onclick="sendClaudeKey('Down')">▼</button>
+          <button class="key-btn" onclick="sendClaudeKey('Left')">◀</button>
+          <button class="key-btn" onclick="sendClaudeKey('Right')">▶</button>
+          <button class="key-btn" onclick="sendClaudeKey('/')">/</button>
+          <button class="key-btn" onclick="sendClaudeKey('-')">-</button>
+          <button class="key-btn" onclick="copyClaudeTerm()">COPY</button>
+          <button class="key-btn" onclick="pasteClaudeTerm()">PASTE</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <div class="tab-bar">
-    <button class="tab-btn active" data-panel="chat"><span class="tab-icon">🤖</span><span class="tab-label">Chat</span></button>
-    <button class="tab-btn" data-panel="monitor"><span class="tab-icon">📊</span><span class="tab-label">Monitor</span></button>
-    <button class="tab-btn" data-panel="files"><span class="tab-icon">📁</span><span class="tab-label">Archivos</span></button>
-    <button class="tab-btn" id="btn-more-menu"><span class="tab-icon">☰</span><span class="tab-label">Menú</span></button>
+    <button class="tab-btn active" data-panel="chat"><span class="tab-icon"><i data-lucide="bot"></i></span><span class="tab-label">Chat</span></button>
+    <button class="tab-btn" data-panel="monitor"><span class="tab-icon"><i data-lucide="activity"></i></span><span class="tab-label">Monitor</span></button>
+    <button class="tab-btn" data-panel="files"><span class="tab-icon"><i data-lucide="folder"></i></span><span class="tab-label">Archivos</span></button>
+    <button class="tab-btn" data-panel="claudecode" id="tab-claudecode" style="display:none"><span class="tab-icon"><i data-lucide="code-2"></i></span><span class="tab-label">Claude</span></button>
+    <button class="tab-btn" id="btn-more-menu"><span class="tab-icon"><i data-lucide="menu"></i></span><span class="tab-label">Menú</span></button>
   </div>
   
   <div id="more-menu" class="more-menu-overlay">
-    <button class="more-item" data-panel="terminal">💻 Terminal</button>
-    <button class="more-item" data-panel="screen">🖥️ Pantalla</button>
-    <button class="more-item" data-panel="browser">🌐 Navegador Web</button>
-    <button class="more-item" data-panel="webcam">📷 Webcam</button>
+    <button class="more-item" data-panel="terminal"><i data-lucide="terminal"></i> Terminal</button>
+    <button class="more-item" data-panel="screen"><i data-lucide="monitor"></i> Pantalla</button>
+    <button class="more-item" data-panel="scripts"><i data-lucide="scroll-text"></i> Scripts Vault</button>
+    <button class="more-item" data-panel="browser"><i data-lucide="globe"></i> Navegador Web</button>
+    <button class="more-item" data-panel="webcam"><i data-lucide="camera"></i> Webcam</button>
   </div>
 </div>
+
+<!-- Preview Modal (Phase 4) -->
+<div id="preview-modal" class="modal-overlay" onclick="closePreview()">
+  <div class="preview-content" onclick="event.stopPropagation()">
+    <button class="btn-close-modal" onclick="closePreview()">✕</button>
+    <div id="preview-body" style="display:flex; align-items:center; justify-content:center; min-height:200px;">
+        <!-- Img or Video or Loader -->
+    </div>
+    <div id="preview-footer" style="padding:16px; text-align:center; font-size:14px; color:var(--text2); border-top:1px solid var(--border);">
+        <span id="preview-filename">archivo.jpg</span>
+    </div>
+  </div>
+</div>
+
+<!-- Add Script Modal (Phase 4) -->
+<div id="script-modal" class="modal-overlay">
+  <div class="settings-card">
+    <button class="btn-close-modal" onclick="qs('#script-modal').classList.remove('open')">✕</button>
+    <h2>➕ NUEVO SCRIPT</h2>
+    <div class="settings-group">
+      <label>Nombre del Script</label>
+      <input type="text" id="script-name" placeholder="Ej: Limpiar Logs">
+    </div>
+    <div class="settings-group">
+      <label>Comando Shell</label>
+      <textarea id="script-cmd" style="width:100%; background:var(--surface2-solid); border:1px solid var(--border); border-radius:12px; padding:12px; color:white; font-family:var(--font-mono); font-size:13px; min-height:100px;" placeholder="Ej: rm -rf /tmp/*"></textarea>
+    </div>
+    <button class="btn-save" onclick="saveNewScript()" style="margin-top:16px;">AGREGAR A LA BÓVEDA</button>
+  </div>
+</div>
+
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -639,6 +1014,10 @@ const WS_BASE = BASE_URL.replace(/^http/, 'ws');
 
 let authToken = localStorage.getItem('oc_token') || null;
 let settings = JSON.parse(localStorage.getItem('oc_settings') || '{}');
+let chatHistory = JSON.parse(localStorage.getItem('oc_chat') || '[]');
+// chatSessionId persistido para que el servidor recuerde el contexto entre recargas
+let chatSessionId = localStorage.getItem('oc_session_id') || ('session_' + Date.now());
+if (!localStorage.getItem('oc_session_id')) localStorage.setItem('oc_session_id', chatSessionId);
 let eventsWS = null;
 let terminalWS = null;
 let screenWS = null;
@@ -656,6 +1035,52 @@ let autoExec = settings.autoExec || false;
 function qs(sel) { return document.querySelector(sel); }
 function show(el) { el.style.display = ''; }
 function hide(el) { el.style.display = 'none'; }
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+const TERM_THEMES = {
+  dark: {
+    background: '#0d0d0d', foreground: '#e2e8f0', cursor: '#00d4ff',
+    black: '#000000', red: '#ff5555', green: '#50fa7b', yellow: '#f1fa8c',
+    blue: '#bd93f9', magenta: '#ff79c6', cyan: '#8be9fd', white: '#bfbfbf'
+  },
+  light: {
+    background: '#ebe4d6', foreground: '#1c1917', cursor: '#2563eb',
+    black: '#44403c', red: '#dc2626', green: '#059669', yellow: '#d97706',
+    blue: '#2563eb', magenta: '#7c3aed', cyan: '#0891b2', white: '#f5f0e8'
+  }
+};
+const CC_TERM_THEMES = {
+  dark: {
+    background: '#0d0d0d', foreground: '#e2e8f0', cursor: '#a855f7',
+    black: '#000000', red: '#ff5555', green: '#50fa7b', yellow: '#f1fa8c',
+    blue: '#bd93f9', magenta: '#ff79c6', cyan: '#8be9fd', white: '#bfbfbf'
+  },
+  light: {
+    background: '#ebe4d6', foreground: '#1c1917', cursor: '#7c3aed',
+    black: '#44403c', red: '#dc2626', green: '#059669', yellow: '#d97706',
+    blue: '#2563eb', magenta: '#7c3aed', cyan: '#0891b2', white: '#f5f0e8'
+  }
+};
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const icon = qs('#btn-theme i');
+  if (icon) { icon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun'); lucide.createIcons(); }
+  localStorage.setItem('oc_theme', theme);
+  // Actualizar terminales normales
+  if (typeof terminals !== 'undefined') {
+    Object.values(terminals).forEach(t => t.x.options.theme = TERM_THEMES[theme] || TERM_THEMES.dark);
+  }
+  // Actualizar terminales de Claude Code agents
+  if (typeof ccAgents !== 'undefined') {
+    Object.values(ccAgents).forEach(a => a.term.options.theme = CC_TERM_THEMES[theme] || CC_TERM_THEMES.dark);
+  }
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'light' ? 'dark' : 'light');
+}
+// Aplicar tema guardado al cargar
+(function() { const saved = localStorage.getItem('oc_theme'); if (saved) applyTheme(saved); })();
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 function forceReloadCache() {
@@ -721,6 +1146,22 @@ function showApp() {
   qs('#app').classList.add('visible');
   initCharts();
   connectEvents();
+  // Restaurar historial de chat (persiste al backgroundear/recargar)
+  if (chatHistory.length) {
+    const container = qs('#chat-messages');
+    chatHistory.forEach(m => {
+      const el = document.createElement('div');
+      el.className = `msg ${m.role}`;
+      if (m.role === 'assistant') {
+        el.innerHTML = renderMarkdown(m.content);
+      } else {
+        el.textContent = m.content;
+      }
+      container.appendChild(el);
+    });
+    const last = container.lastChild;
+    if (last) last.scrollIntoView();
+  }
   if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
   }
@@ -774,6 +1215,14 @@ function init() {
   });
 
   // More Menu Logic
+  // (Logic handled below in the document click listener for outside-click support)
+
+
+  // Model select logic
+  qs('#cfg-model-select').addEventListener('change', (e) => {
+    const isCustom = e.target.value === 'custom';
+    qs('#manual-model-group').style.display = isCustom ? 'block' : 'none';
+  });
   document.addEventListener('click', e => {
      const menu = qs('#more-menu');
      const btn = qs('#btn-more-menu');
@@ -799,10 +1248,37 @@ function init() {
     toggleEl.classList.toggle('on', autoExec);
   });
 
+  // Toggle Claude Code (visual only — saved on btn-save-settings)
+  const toggleCC = qs('#toggle-claudecode');
+  if (toggleCC) {
+    toggleCC.addEventListener('click', () => {
+      toggleCC.classList.toggle('on');
+    });
+  }
+
+  // Aplicar setting de Claude Code al iniciar
+  applyClaudeCodeSetting();
+
   // Restaurar settings
   if (settings.provider) qs('#cfg-provider').value = settings.provider;
-  if (settings.model) qs('#cfg-model').value = settings.model;
   if (settings.apiKey) qs('#cfg-apikey').value = settings.apiKey;
+  
+  if (settings.model) {
+      const modelSelect = qs('#cfg-model-select');
+      let found = false;
+      for (let opt of modelSelect.options) {
+          if (opt.value === settings.model) {
+              modelSelect.value = settings.model;
+              found = true;
+              break;
+          }
+      }
+      if (!found) {
+          modelSelect.value = 'custom';
+          qs('#cfg-model').value = settings.model;
+          qs('#manual-model-group').style.display = 'block';
+      }
+  }
 
   // Auto-login si hay token
   if (authToken) showApp();
@@ -810,6 +1286,23 @@ function init() {
   // SW
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+    // Cuando el usuario toca una notificación de agente, el SW manda este mensaje
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'cc_notification_click') {
+        const agentId = event.data.agentId;
+        switchPanel('claudecode');
+        if (agentId && ccAgents.has(agentId)) {
+          ccSelectAgent(agentId);
+          ccShowTerminal();
+        }
+      }
+    });
+  }
+  
+  // Create Lucide Icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
   }
 }
 
@@ -828,8 +1321,13 @@ function switchPanel(name) {
   if (panel) panel.classList.add('active');
 
   if (name === 'terminal') initTerminal();
+  if (name === 'claudecode') initClaudeCode();
   if (name === 'screen') initScreen();
-  if (name === 'monitor') loadProcesses();
+  if (name === 'monitor') {
+      loadProcesses();
+      loadHealthHistory();
+  }
+  if (name === 'scripts') loadScripts();
   if (name === 'files') {
       if (!fmInitialized) {
           qs('#fm-path').value = '/';
@@ -901,11 +1399,15 @@ async function loadProcesses() {
 function renderProcesses(procs) {
   const list = qs('#proc-list');
   if (!list) return;
+  if (!procs.length) {
+    list.innerHTML = '<div style="color:var(--text3);text-align:center;padding:10px;font-size:12px">No hay procesos activos detectados</div>';
+    return;
+  }
   list.innerHTML = procs.map(p => `
     <div class="proc-row">
       <span class="proc-name" title="PID: ${p.pid}">${p.name}</span>
-      <span class="proc-cpu">${p.cpu.toFixed(1)}%</span>
-      <span class="proc-mem">${p.mem.toFixed(1)}%</span>
+      <span class="proc-cpu">${(p.cpu || 0).toFixed(1)}%</span>
+      <span class="proc-mem">${(p.mem || 0).toFixed(1)}%</span>
       <button class="proc-kill" onclick="killProcess(${p.pid})">✕</button>
     </div>
   `).join('');
@@ -928,6 +1430,173 @@ async function killProcess(pid) {
   } catch(err) { alert('Request error'); }
 }
 
+async function quickAction(type) {
+  if (type === 'notify') {
+    if (Notification.permission === 'granted') {
+      new Notification('🔔 moshiClaw', { body: 'Prueba de notificación exitosa' });
+    } else {
+      Notification.requestPermission();
+    }
+    return;
+  }
+  
+  if (!confirm(`¿Ejecutar acción: ${type}?`)) return;
+  
+  try {
+    const res = await fetch('/api/chat', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+       body: JSON.stringify({ 
+         message: type === 'reboot' ? 'reiniciar el sistema' : 
+                  type === 'shutdown' ? 'apagar el sistema' : 
+                  'limpiar archivos temporales',
+         sessionId: chatSessionId,
+         settings: { autoExec: true } // Force autoExec for quick actions
+       })
+    });
+    alert('Acción enviada a la IA para ejecución.');
+  } catch(e) { alert('Error al enviar acción'); }
+}
+// ─── SCRIPT VAULT (Phase 4) ──────────────────────────────────────────────────
+async function loadScripts() {
+    try {
+        const res = await fetch('/api/scripts', { headers: { 'Authorization': 'Bearer ' + authToken } });
+        const data = await res.json();
+        renderScripts(data.scripts || []);
+    } catch(err) { console.error(err); }
+}
+
+function renderScripts(scripts) {
+    const list = qs('#scripts-list');
+    if (!list) return;
+    if (!scripts.length) {
+        list.innerHTML = '<div style="color:var(--text3);text-align:center;padding:20px;font-size:12px">Tu bóveda está vacía</div>';
+        return;
+    }
+    list.innerHTML = scripts.map(s => `
+        <div class="script-item">
+            <div class="script-name">${s.name}<div class="script-cmd-hint">${s.cmd}</div></div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-run" onclick="runScript(${s.id})"><i data-lucide="play"></i> RUN</button>
+                <button class="icon-btn" onclick="deleteScript(${s.id})" style="border-color:var(--red); color:var(--red); width:32px; height:32px;"><i data-lucide="trash-2"></i></button>
+            </div>
+        </div>
+    `).join('');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function runScript(id) {
+    const outBox = qs('#script-output-box');
+    const outText = qs('#script-output');
+    outBox.style.display = 'block';
+    outText.textContent = '> Ejecutando script...\n';
+    
+    try {
+        const res = await fetch('/api/scripts/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+            body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        outText.textContent += data.output || 'Finalizado sin salida.';
+        if (data.exitCode !== 0) outText.textContent += `\n[Error con código ${data.exitCode}]`;
+    } catch(err) {
+        outText.textContent += 'Error de red al ejecutar.';
+    }
+}
+
+function showAddScript() {
+    qs('#script-modal').classList.add('open');
+}
+
+async function saveNewScript() {
+    const name = qs('#script-name').value.trim();
+    const cmd = qs('#script-cmd').value.trim();
+    if (!name || !cmd) return alert('Faltan datos');
+    
+    try {
+        const res = await fetch('/api/scripts/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+            body: JSON.stringify({ name, cmd })
+        });
+        const data = await res.json();
+        if (data.success) {
+            qs('#script-modal').classList.remove('open');
+            qs('#script-name').value = '';
+            qs('#script-cmd').value = '';
+            loadScripts();
+        }
+    } catch(err) { alert('Error al guardar'); }
+}
+
+async function deleteScript(id) {
+    if (!confirm('¿Seguro que querés borrar este script?')) return;
+    try {
+        await fetch(`/api/scripts/${id}`, { 
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + authToken } 
+        });
+        loadScripts();
+    } catch(err) { console.error(err); }
+}
+
+// ─── HEALTH HISTORY (Phase 4) ────────────────────────────────────────────────
+let historyChart = null;
+
+async function loadHealthHistory() {
+    try {
+        const res = await fetch('/api/stats/history', { headers: { 'Authorization': 'Bearer ' + authToken } });
+        const data = await res.json();
+        renderHistoryChart(data.history || []);
+    } catch(err) { console.error(err); }
+}
+
+function renderHistoryChart(history) {
+    const ctx = qs('#chart-history').getContext('2d');
+    const labels = history.map(h => new Date(h.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    const cpuData = history.map(h => h.cpu);
+    const ramData = history.map(h => h.ram);
+
+    if (historyChart) historyChart.destroy();
+
+    historyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'CPU%',
+                    data: cpuData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                },
+                {
+                    label: 'RAM%',
+                    data: ramData,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: true, ticks: { display: false }, grid: { display: false } },
+                y: { min: 0, max: 100, ticks: { font: { size: 9 }, color: '#71717a' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+}
+
 // ─── STATS / MONITOR ─────────────────────────────────────────────────────────
 function updateStats(s) {
   if (!s) return;
@@ -939,6 +1608,13 @@ function updateStats(s) {
   qs('#m-iface').textContent = s.network.iface;
   qs('#m-os').textContent = s.os.distro;
   qs('#m-host').textContent = s.os.hostname;
+
+  if (s.cpu.model) qs('#m-cpu-model').textContent = s.cpu.model;
+  if (s.hardware) {
+    qs('#m-gpu').textContent = s.hardware.gpu || 'N/A';
+    qs('#m-hw-model').textContent = s.hardware.model || '—';
+    qs('#m-hw-make').textContent = s.hardware.manufacturer || '—';
+  }
 
   // Notificaciones (Phase 3)
   if ('Notification' in window && Notification.permission === 'granted') {
@@ -1004,62 +1680,141 @@ function initCharts() {
 // ─── TERMINAL ─────────────────────────────────────────────────────────────────
 let terminals = {};
 let activeTermId = null;
+let termModifiers = { Ctrl: false, Alt: false };
 
 function newTerminal() {
   const id = 'term_' + Date.now();
+  const container = qs('#terminal-container');
   const div = document.createElement('div');
   div.id = 'term-view-' + id;
   div.style.display = 'none';
   div.style.height = '100%';
-  qs('#terminal-container').appendChild(div);
+  div.style.width = '100%';
+  container.appendChild(div);
 
   const x = new Terminal({
-    theme: { background: '#0d0d0d', foreground: '#e2e8f0', cursor: '#00d4ff' },
+    theme: TERM_THEMES[document.documentElement.getAttribute('data-theme')] || TERM_THEMES.dark,
     fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-    fontSize: 13,
-    cursorBlink: true
+    fontSize: 14,
+    cursorBlink: true,
+    padding: 10
   });
   const fit = new FitAddon.FitAddon();
   x.loadAddon(fit);
   x.open(div);
-  fit.fit();
+  
+  setTimeout(() => fit.fit(), 100);
 
   const ws = new WebSocket(`${WS_BASE}/ws/terminal?token=${authToken}`);
-  ws.onopen = () => ws.send(JSON.stringify({ type: 'init', cols: x.cols, rows: x.rows }));
+  
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'init', cols: x.cols, rows: x.rows }));
+  };
+  
   ws.onmessage = (e) => x.write(e.data);
   ws.onclose = () => x.write('\r\n\x1b[33m[Conexión perdida]\x1b[0m\r\n');
 
-  x.onData(d => { if(ws.readyState === WebSocket.OPEN) ws.send(d); });
+  x.onData(d => {
+    if (ws.readyState === WebSocket.OPEN) {
+      let data = d;
+      if (termModifiers.Ctrl && d.length === 1) {
+        const charCode = d.toUpperCase().charCodeAt(0);
+        if (charCode >= 64 && charCode <= 95) data = String.fromCharCode(charCode - 64);
+      } else if (termModifiers.Alt && d.length === 1) {
+        data = '\x1b' + d;
+      }
+      ws.send(data);
+      
+      // Auto-off for modifiers after one key
+      if (termModifiers.Ctrl || termModifiers.Alt) {
+          termModifiers.Ctrl = false;
+          termModifiers.Alt = false;
+          document.querySelectorAll('.key-btn').forEach(b => {
+              if (['CTRL', 'ALT'].includes(b.textContent)) b.classList.remove('active');
+          });
+      }
+    }
+  });
+
+  x.onResize(size => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'resize', cols: size.cols, rows: size.rows }));
+    }
+  });
+
+  // Observation for auto-fit
+  const ro = new ResizeObserver(() => {
+    if (div.style.display !== 'none') fit.fit();
+  });
+  ro.observe(container);
   
-  terminals[id] = { x, fit, ws, div };
+  terminals[id] = { x, fit, ws, div, ro };
 
   const tab = document.createElement('div');
   tab.className = 'term-tab';
-  tab.textContent = 'Terminal ' + (Object.keys(terminals).length);
-  tab.onclick = () => switchTerminal(id);
+  tab.innerHTML = `<i data-lucide="terminal" style="width:12px; margin-right:4px;"></i> T${Object.keys(terminals).length} <span class="close-tab" style="margin-left:8px; opacity:0.5;">✕</span>`;
+  tab.onclick = (e) => {
+      if (e.target.classList.contains('close-tab')) {
+          closeTerminal(id, tab);
+          return;
+      }
+      switchTerminal(id);
+  };
+  
   qs('#terminal-nav').appendChild(tab);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
   
   switchTerminal(id);
+}
+
+function closeTerminal(id, tabEl) {
+    const t = terminals[id];
+    if (!t) return;
+    t.ws.close();
+    t.ro.disconnect();
+    t.div.remove();
+    tabEl.remove();
+    delete terminals[id];
+    const keys = Object.keys(terminals);
+    if (keys.length > 0) switchTerminal(keys[keys.length - 1]);
+    else activeTermId = null;
 }
 
 function switchTerminal(id) {
   activeTermId = id;
   Object.keys(terminals).forEach(k => {
     terminals[k].div.style.display = (k === id) ? 'block' : 'none';
-    terminals[k].fit.fit();
+    if (k === id) {
+        setTimeout(() => {
+            terminals[k].fit.fit();
+            terminals[k].x.focus();
+        }, 50);
+    }
   });
   document.querySelectorAll('.term-tab').forEach((t, i) => {
     t.classList.toggle('active', Object.keys(terminals)[i] === id);
   });
 }
 
-function sendKey(k) {
-  if (!activeTermId) return;
-  const t = terminals[activeTermId].x;
-  if (k === 'Ctrl') t.write('\x03'); // Simplificado
-  else if (k === 'Alt') t.write('\x1b');
-  else if (k === 'Esc') t.write('\x1b');
-  else if (k === 'Tab') t.write('\t');
+function toggleTermKey(btn, key) {
+    termModifiers[key] = !termModifiers[key];
+    btn.classList.toggle('active', termModifiers[key]);
+}
+
+function sendTermKey(key) {
+    if (!activeTermId) return;
+    const t = terminals[activeTermId];
+    let code = '';
+    if (key === 'Esc') code = '\x1b';
+    else if (key === 'Tab') code = '\t';
+    else if (key === 'Up') code = '\x1b[A';
+    else if (key === 'Down') code = '\x1b[B';
+    else if (key === 'Right') code = '\x1b[C';
+    else if (key === 'Left') code = '\x1b[D';
+    else code = key;
+
+    if (t.ws.readyState === WebSocket.OPEN) t.ws.send(code);
+    t.x.focus();
 }
 
 async function copyTerm() {
@@ -1079,6 +1834,442 @@ function initTerminal() {
   if (terminalInitialized) return;
   terminalInitialized = true;
   newTerminal();
+}
+
+// ─── CLAUDE CODE — GESTOR DE AGENTES ─────────────────────────────────────────
+const ccAgents     = new Map();   // id → { term, ws, fit, ro, div, chipEl, status, absPath, relPath, label, outputBuf, outputTimer, notifiedFor }
+let ccActiveId     = null;
+let ccAgentSeq     = 0;
+let ccCurrentPath  = '/';         // ruta que se está navegando en el explorador
+let ccModifiers    = { Ctrl: false };
+let ccBrowserMode  = false;       // true = estamos en modo explorador para añadir agente
+
+// ── Persistencia de agentes ───────────────────────────────────────────────
+function ccSaveState() {
+  const data = [...ccAgents.values()].map(a => ({
+    absPath: a.absPath,
+    relPath: a.relPath,
+    label:   a.label
+  }));
+  try { localStorage.setItem('oc_cc_agents', JSON.stringify(data)); } catch {}
+}
+
+// ── Punto de entrada al panel ──────────────────────────────────────────────
+// ── Punto de entrada al panel ────────────────────────────────────────────
+function initClaudeCode() {
+  if (ccAgents.size === 0) {
+    // Restaurar agentes guardados de sesiones anteriores
+    const saved = JSON.parse(localStorage.getItem('oc_cc_agents') || '[]');
+    if (saved.length) {
+      saved.forEach(a => ccCreateAgent(a.absPath, a.relPath));
+      return; // ccCreateAgent ya muestra la vista de terminal
+    }
+    ccShowBrowser();
+    ccLoadDir(ccCurrentPath);
+  } else if (ccActiveId) {
+    ccShowTerminal();
+  } else {
+    ccShowBrowserForNew();
+  }
+}
+
+// ── Cambio de vistas ─────────────────────────────────────────────────────
+function ccShowBrowserForNew() {
+  ccBrowserMode = true;
+  ccShowBrowser();
+  ccLoadDir(ccCurrentPath);
+}
+
+function ccShowBrowser() {
+  qs('#cc-browser-view').style.display = 'flex';
+  qs('#cc-terminal-view').style.display = 'none';
+}
+
+function ccShowTerminal() {
+  qs('#cc-browser-view').style.display = 'none';
+  qs('#cc-terminal-view').style.display = 'flex';
+  const agent = ccAgents.get(ccActiveId);
+  if (agent) setTimeout(() => { agent.fit.fit(); agent.term.focus(); }, 80);
+}
+
+// ── Explorador de directorios ────────────────────────────────────────────
+async function ccLoadDir(relPath) {
+  ccCurrentPath = relPath;
+
+  // Breadcrumb
+  const parts = relPath.split('/').filter(Boolean);
+  let html = `<span onclick="ccLoadDir('/')">~</span>`;
+  let built = '';
+  parts.forEach(p => {
+    built += '/' + p;
+    const cap = built;
+    html += ` / <span onclick="ccLoadDir('${cap.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')"> ${p}</span>`;
+  });
+  const bcEl = qs('#cc-breadcrumb');
+  if (bcEl) bcEl.innerHTML = html;
+  const bb = qs('#cc-back-btn');
+  if (bb) bb.disabled = (relPath === '/');
+
+  const grid = qs('#cc-dir-grid');
+  if (!grid) return;
+  grid.innerHTML = `<div class="cc-empty"><i data-lucide="loader-2" style="width:22px;height:22px;display:block;margin:0 auto 10px;animation:spin 0.9s linear infinite;"></i>Cargando...</div>`;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  try {
+    const res  = await fetch(`/api/files/list?path=${encodeURIComponent(relPath)}`,
+                             { headers: { Authorization: `Bearer ${authToken}` } });
+    const data = await res.json();
+    const dirs = (data.items || []).filter(i => i.isDirectory);
+
+    if (!dirs.length) {
+      grid.innerHTML = `<div class="cc-empty"><i data-lucide="folder-x" style="width:28px;height:28px;display:block;margin:0 auto 10px;opacity:0.4;"></i>Sin subcarpetas aquí</div>`;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      return;
+    }
+    grid.innerHTML = dirs.map(d => {
+      const sp = d.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<div class="cc-dir-card" onclick="ccNavigate('${sp}')">
+        <i data-lucide="folder" style="width:30px;height:30px;color:#f59e0b;flex-shrink:0;"></i>
+        <div class="cc-dir-name">${d.name}</div>
+        <button class="cc-open-dir-btn" title="Abrir Claude Code aquí" onclick="event.stopPropagation();ccOpenInDir('${sp}')">
+          <i data-lucide="zap" style="width:11px;height:11px;"></i>
+        </button>
+      </div>`;
+    }).join('');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  } catch {
+    grid.innerHTML = `<div class="cc-empty" style="color:var(--red);">Error al cargar directorio</div>`;
+  }
+}
+
+function ccGoBack() {
+  const parts = ccCurrentPath.split('/').filter(Boolean);
+  if (!parts.length) return;
+  parts.pop();
+  ccLoadDir(parts.length ? '/' + parts.join('/') : '/');
+}
+function ccNavigate(relPath) { ccLoadDir(relPath); }
+function ccOpenHere()        { ccOpenInDir(ccCurrentPath); }
+
+function ccOpenInDir(relPath) {
+  const absPath = '/home/moshi' + (relPath === '/' ? '' : relPath);
+  ccBrowserMode = false;
+  ccCreateAgent(absPath, relPath);
+}
+
+// ── Gestor de agentes ────────────────────────────────────────────────────
+function ccCreateAgent(absPath, relPath) {
+  const id    = 'cca_' + (++ccAgentSeq) + '_' + Date.now();
+  const label = relPath.split('/').filter(Boolean).pop() || '~';
+
+  // Crear div de terminal
+  const div = document.createElement('div');
+  div.className = 'cc-term-view';
+  div.id = 'cc-term-' + id;
+  qs('#cc-terms-container').appendChild(div);
+
+  // xterm
+  const x = new Terminal({
+    theme: CC_TERM_THEMES[document.documentElement.getAttribute('data-theme')] || CC_TERM_THEMES.dark,
+    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+    fontSize: 13, cursorBlink: true, padding: 8
+  });
+  const fit = new FitAddon.FitAddon();
+  x.loadAddon(fit);
+  x.open(div);
+  setTimeout(() => fit.fit(), 100);
+
+  const agent = {
+    id, label, absPath, relPath,
+    term: x, fit, div,
+    ws: null, ro: null,
+    status: 'connecting',
+    outputBuf: '', outputTimer: null, notifiedFor: null,
+    chipEl: null
+  };
+
+  // Keyboard input (referencia a agent.ws para poder reemplazarla en restart)
+  x.onData(d => {
+    if (!agent.ws || agent.ws.readyState !== WebSocket.OPEN) return;
+    let data = d;
+    if (ccModifiers.Ctrl && d.length === 1) {
+      const cc = d.toUpperCase().charCodeAt(0);
+      if (cc >= 64 && cc <= 95) data = String.fromCharCode(cc - 64);
+      ccModifiers.Ctrl = false;
+      const ctrlBtn = qs('#claude-ctrl-btn');
+      if (ctrlBtn) ctrlBtn.classList.remove('active');
+    }
+    agent.ws.send(data);
+  });
+
+  x.onResize(size => {
+    if (agent.ws && agent.ws.readyState === WebSocket.OPEN)
+      agent.ws.send(JSON.stringify({ type: 'resize', cols: size.cols, rows: size.rows }));
+  });
+
+  const ro = new ResizeObserver(() => { if (agent.fit) agent.fit.fit(); });
+  ro.observe(div);
+  agent.ro = ro;
+
+  ccAgents.set(id, agent);
+  ccSaveState();       // persistir lista de agentes
+  _ccConnect(agent);   // abre WebSocket y lanza Claude Code
+  ccSelectAgent(id);
+  ccShowTerminal();
+  _ccRenderAgentsBar();
+}
+
+function _ccConnect(agent) {
+  const ws = new WebSocket(`${WS_BASE}/ws/terminal?token=${authToken}`);
+  agent.ws = ws;
+  agent.status = 'connecting';
+  _ccUpdateChip(agent.id);
+
+  ws.onopen = () => {
+    agent.status = 'running';
+    _ccUpdateChip(agent.id);
+    ws.send(JSON.stringify({ type: 'init', cols: agent.term.cols, rows: agent.term.rows }));
+    const safeP = agent.absPath.replace(/"/g, '\\"');
+    setTimeout(() => ws.send(`cd "${safeP}"\r`), 300);
+    setTimeout(() => ws.send(`npx claude --dangerously-skip-permissions\r`), 700);
+  };
+
+  ws.onmessage = (e) => {
+    agent.term.write(e.data);
+    const stripped = _ccStripAnsi(e.data);
+
+    // Si Claude estaba esperando y llega output real → está trabajando de nuevo
+    if ((agent.status === 'waiting' || agent.status === 'done') &&
+        stripped.replace(/[\s\r\n]/g, '').length > 3) {
+      agent.status = 'running';
+      agent.notifiedFor = null;
+      _ccUpdateChip(agent.id);
+    }
+
+    agent.outputBuf = (agent.outputBuf + stripped).slice(-1200);
+    clearTimeout(agent.outputTimer);
+    agent.outputTimer = setTimeout(() => _ccDetect(agent), 1800);
+  };
+
+  ws.onclose = () => {
+    agent.status = 'error';
+    _ccUpdateChip(agent.id);
+    agent.term.write('\r\n\x1b[31m[Sesión cerrada — presiona ↻ para reiniciar]\x1b[0m\r\n');
+    if (agent.id === ccActiveId) _setClaudeStatus('desconectado');
+  };
+}
+
+function ccSelectAgent(id) {
+  ccActiveId = id;
+  // Mostrar/ocultar terminales
+  ccAgents.forEach((a, aid) => {
+    a.div.classList.toggle('cc-term-active', aid === id);
+  });
+  // Actualizar topbar
+  const agent = ccAgents.get(id);
+  if (agent) {
+    const pathEl = qs('#cc-active-path');
+    if (pathEl) pathEl.textContent = '~' + (agent.relPath === '/' ? '' : agent.relPath);
+    _setClaudeStatus(_ccStatusLabel(agent.status));
+    // Resetear notificación al enfocar
+    agent.notifiedFor = null;
+    setTimeout(() => { agent.fit.fit(); agent.term.focus(); }, 80);
+  }
+  _ccRenderAgentsBar();
+}
+
+function ccCloseAgent(id) {
+  const agent = ccAgents.get(id);
+  if (!agent) return;
+  clearTimeout(agent.outputTimer);
+  try { agent.ws.close();     } catch {}
+  try { agent.term.dispose(); } catch {}
+  try { agent.ro.disconnect(); } catch {}
+  agent.div.remove();
+  ccAgents.delete(id);
+  ccSaveState();       // actualizar lista persistida
+
+  if (ccActiveId === id) {
+    const remaining = [...ccAgents.keys()];
+    if (remaining.length) {
+      ccSelectAgent(remaining[remaining.length - 1]);
+      ccShowTerminal();
+    } else {
+      ccActiveId = null;
+      ccShowBrowserForNew();
+    }
+  }
+  _ccRenderAgentsBar();
+}
+
+function ccRestartActive() {
+  const agent = ccAgents.get(ccActiveId);
+  if (!agent) return;
+  clearTimeout(agent.outputTimer);
+  try { agent.ws.close(); } catch {}
+  agent.term.clear();
+  agent.outputBuf = '';
+  agent.notifiedFor = null;
+  _ccConnect(agent);
+}
+
+// ── Renderizado de chips ──────────────────────────────────────────────────
+function _ccRenderAgentsBar() {
+  const bar = qs('#cc-agents-bar');
+  if (!bar) return;
+  bar.style.display = ccAgents.size ? 'flex' : 'none';
+
+  // Quitar chips viejos (no el botón +)
+  bar.querySelectorAll('.cc-agent-chip').forEach(el => el.remove());
+
+  const addBtn = qs('#cc-add-agent-btn');
+  ccAgents.forEach((agent, id) => {
+    const chip = document.createElement('div');
+    chip.className = `cc-agent-chip s-${agent.status}${id === ccActiveId ? ' cc-active' : ''}`;
+    chip.id = 'cc-chip-' + id;
+    chip.innerHTML = `
+      <span class="cc-agent-dot"></span>
+      <span class="cc-chip-label">${agent.label}</span>
+      <button class="cc-chip-close" onclick="event.stopPropagation();ccCloseAgent('${id}')" title="Cerrar agente">✕</button>`;
+    chip.addEventListener('click', () => {
+      ccSelectAgent(id);
+      ccShowTerminal();
+    });
+    agent.chipEl = chip;
+    bar.insertBefore(chip, addBtn);
+  });
+}
+
+function _ccUpdateChip(id) {
+  const agent = ccAgents.get(id);
+  if (!agent || !agent.chipEl) { _ccRenderAgentsBar(); return; }
+  agent.chipEl.className = `cc-agent-chip s-${agent.status}${id === ccActiveId ? ' cc-active' : ''}`;
+  if (id === ccActiveId) _setClaudeStatus(_ccStatusLabel(agent.status));
+}
+
+function _ccStatusLabel(s) {
+  return { connecting:'conectando...', running:'activo', waiting:'esperando', done:'listo', error:'error' }[s] || s;
+}
+
+// ── Detección de estado por output ───────────────────────────────────────
+function _ccStripAnsi(str) {
+  return str
+    .replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '')
+    .replace(/\x1b\][^\x07]*\x07/g, '')
+    .replace(/\x1b[()][012AB]/g, '')
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '');
+}
+
+function _ccDetect(agent) {
+  // Solo actuar si Claude está trabajando (running)
+  if (agent.status !== 'running') return;
+
+  const tail = agent.outputBuf.slice(-700);
+
+  // Detectar prompt ❯ de Claude Code (indica que terminó y espera input)
+  const atPrompt =
+    /[❯›][\s\r\n]{0,8}$/.test(tail);
+
+  // Detectar si necesita confirmación del usuario
+  const needsConfirm =
+    /\(y\/n\)/i.test(tail) ||
+    /\[yes\/no\]/i.test(tail) ||
+    /Do you want/i.test(tail.slice(-400)) ||
+    /Allow this/i.test(tail.slice(-400)) ||
+    /proceed\?/i.test(tail.slice(-300)) ||
+    /Are you sure/i.test(tail.slice(-300));
+
+  if (!atPrompt && !needsConfirm) return;
+
+  // Transicionar a waiting
+  agent.status = 'waiting';
+  _ccUpdateChip(agent.id);
+
+  // Notificar a menos que el usuario esté mirando exactamente este agente
+  const isWatching =
+    !document.hidden &&
+    agent.id === ccActiveId &&
+    !!document.querySelector('#panel-claudecode.active');
+
+  if (!isWatching && agent.notifiedFor !== 'waiting') {
+    agent.notifiedFor = 'waiting';
+    const title = needsConfirm
+      ? '⚠️ Agente necesita tu confirmación'
+      : '✅ Agente completó la tarea';
+    const body = needsConfirm
+      ? `${agent.label} está esperando una respuesta`
+      : `${agent.label} terminó y espera tu próxima instrucción`;
+    ccNotify(title, body, agent.id);
+  }
+  // El buffer NO se limpia — ventana deslizante de 1200 chars
+}
+
+// ── Notificaciones PWA ────────────────────────────────────────────────────
+async function ccNotify(title, body, agentId) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    await reg.showNotification(title, {
+      body,
+      icon:      '/icons/icon-192.png',
+      badge:     '/icons/icon-192.png',
+      tag:       'cc-' + agentId,   // reemplaza notif anterior del mismo agente
+      renotify:  true,
+      data:      { agentId }
+    });
+  } catch {
+    // Fallback si el SW no soporta showNotification
+    try { new Notification(title, { body, icon: '/icons/icon-192.png' }); } catch {}
+  }
+}
+
+// ── Teclado móvil ────────────────────────────────────────────────────────
+function toggleClaudeKey(btn, key) {
+  ccModifiers[key] = !ccModifiers[key];
+  btn.classList.toggle('active', ccModifiers[key]);
+}
+
+function sendClaudeKey(key) {
+  const agent = ccAgents.get(ccActiveId);
+  if (!agent || !agent.ws || agent.ws.readyState !== WebSocket.OPEN) return;
+  const map = { Esc:'\x1b', Tab:'\t', Up:'\x1b[A', Down:'\x1b[B', Right:'\x1b[C', Left:'\x1b[D' };
+  agent.ws.send(map[key] || key);
+  agent.term.focus();
+}
+
+async function copyClaudeTerm() {
+  const agent = ccAgents.get(ccActiveId);
+  if (!agent) return;
+  const text = agent.term.getSelection();
+  if (text) await navigator.clipboard.writeText(text);
+}
+
+async function pasteClaudeTerm() {
+  const agent = ccAgents.get(ccActiveId);
+  if (!agent || !agent.ws || agent.ws.readyState !== WebSocket.OPEN) return;
+  const text = await navigator.clipboard.readText();
+  if (text) agent.ws.send(text);
+}
+
+// ── Helpers compartidos ──────────────────────────────────────────────────
+function _setClaudeStatus(txt) {
+  const el = qs('#claudecode-status');
+  if (!el) return;
+  el.textContent = txt;
+  const colors = { activo:'var(--green)', listo:'var(--green)', esperando:'var(--orange)', error:'var(--red)', desconectado:'var(--red)' };
+  el.style.color = colors[txt] || 'var(--text3)';
+}
+
+// ── Setting on/off ────────────────────────────────────────────────────────
+function applyClaudeCodeSetting() {
+  const tab = qs('#tab-claudecode');
+  if (!tab) return;
+  const enabled = !!settings.claudeCode;
+  tab.style.display = enabled ? '' : 'none';
+  if (!enabled && document.querySelector('#panel-claudecode.active')) {
+    switchPanel('chat');
+  }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // ─── SCREEN SHARE (getDisplayMedia) ──────────────────────────────────────────
@@ -1317,28 +2508,64 @@ function renderFileList(items) {
         el.style.border = '1px solid var(--border)';
         el.style.gap = '10px';
         
-        const icon = item.isDirectory ? '📁' : '📄';
+        const iconName = item.isDirectory ? 'folder' : 'file';
         const color = item.isDirectory ? 'var(--accent)' : 'var(--text2)';
+        const ext = item.name.split('.').pop().toLowerCase();
+        const isMedia = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'ogg'].includes(ext);
         
         el.innerHTML = `
-            <div style="font-size: 20px;">${icon}</div>
+            <div style="font-size: 20px;"><i data-lucide="${iconName}" style="color:${color}"></i></div>
             <div style="flex:1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; color: ${color}; cursor: pointer;" onclick="fmItemClick('${item.path}', ${item.isDirectory})">${item.name}</div>
             <div style="font-size: 11px; color: var(--text3); width: 60px; text-align: right;">${item.isDirectory ? '' : formatBytes(item.size)}</div>
             <div style="display:flex; gap: 4px;">
-                ${!item.isDirectory ? `<button class="icon-btn" style="width:30px;height:30px;font-size:12px" onclick="fmDownload('${item.path}')" title="Descargar">⬇️</button>` : ''}
-                <button class="icon-btn" style="width:30px;height:30px;font-size:12px" onclick="fmRename('${item.path}', '${item.name}')" title="Renombrar">✏️</button>
-                <button class="icon-btn" style="width:30px;height:30px;font-size:12px;color:var(--red);" onclick="fmDelete('${item.path}')" title="Borrar">🗑️</button>
+                ${isMedia ? `<button class="icon-btn" style="width:30px;height:30px;font-size:12px;color:var(--accent);" onclick="showPreview('${item.path}', '${ext}')" title="Previsualizar"><i data-lucide="eye"></i></button>` : ''}
+                ${!item.isDirectory ? `<button class="icon-btn" style="width:30px;height:30px;font-size:12px" onclick="fmDownload('${item.path}')" title="Descargar"><i data-lucide="download"></i></button>` : ''}
+                <button class="icon-btn" style="width:30px;height:30px;font-size:12px" onclick="fmRename('${item.path}', '${item.name}')" title="Renombrar"><i data-lucide="edit-3"></i></button>
+                <button class="icon-btn" style="width:30px;height:30px;font-size:12px;color:var(--red);" onclick="fmDelete('${item.path}')" title="Borrar"><i data-lucide="trash-2"></i></button>
             </div>
         `;
         list.appendChild(el);
     });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function fmItemClick(path, isDir) {
     if (isDir) {
         qs('#fm-path').value = path;
         fmLoad();
+    } else {
+        const ext = path.split('.').pop().toLowerCase();
+        const media = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'ogg'];
+        if (media.includes(ext)) {
+            showPreview(path, ext);
+        }
     }
+}
+
+function showPreview(path, ext) {
+    const modal = qs('#preview-modal');
+    const body = qs('#preview-body');
+    const filename = qs('#preview-filename');
+    
+    filename.textContent = path.split('/').pop();
+    body.innerHTML = '<div style="color:var(--text3)">Cargando vista previa...</div>';
+    modal.classList.add('open');
+    
+    const url = `/api/files/preview?path=${encodeURIComponent(path)}&token=${authToken}`;
+    
+    if (['mp4', 'webm', 'ogg'].includes(ext)) {
+        body.innerHTML = `<video src="${url}" controls autoplay style="max-width:100%; max-height:70vh;"></video>`;
+    } else {
+        const img = new Image();
+        img.onload = () => { body.innerHTML = ''; body.appendChild(img); };
+        img.onerror = () => { body.innerHTML = '<div style="color:var(--red)">No se pudo cargar la imagen</div>'; };
+        img.src = url;
+    }
+}
+
+function closePreview() {
+    qs('#preview-modal').classList.remove('open');
+    qs('#preview-body').innerHTML = '';
 }
 
 function fmGoUp() {
@@ -1416,10 +2643,10 @@ async function fmUpload(e) {
 }
 
 
-let chatSessionId = 'session_' + Date.now();
 let pendingThinkingEl = null;
 let pendingToolCards = {};     // confirmId → { el, toolName, args }
 let pendingToolData = {};      // confirmId → { toolName, args } para confirmación segura
+let sessionAutoExec = false;   // Permiso temporal para esta sesión
 
 function addMessage(content, role) {
   const el = document.createElement('div');
@@ -1431,6 +2658,11 @@ function addMessage(content, role) {
   }
   qs('#chat-messages').appendChild(el);
   el.scrollIntoView({ behavior: 'smooth' });
+  // Persistir mensajes de usuario y asistente (no mensajes de sistema transitorio)
+  if (role === 'user' || role === 'assistant') {
+    chatHistory.push({ role, content });
+    try { localStorage.setItem('oc_chat', JSON.stringify(chatHistory)); } catch {}
+  }
   return el;
 }
 
@@ -1442,10 +2674,24 @@ function showThinking() {
   qs('#chat-messages').appendChild(el);
   el.scrollIntoView({ behavior: 'smooth' });
   pendingThinkingEl = el;
+  
+  // Transform send button to stop button
+  const btn = qs('#btn-send-chat');
+  btn.style.background = 'var(--red)';
+  btn.innerHTML = '<i data-lucide="square" style="width:18px; height:18px;"></i>';
+  btn.title = 'Detener respuesta';
+  btn.disabled = false;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function removeThinking() {
   if (pendingThinkingEl) { pendingThinkingEl.remove(); pendingThinkingEl = null; }
+  
+  // Reset send button
+  const btn = qs('#btn-send-chat');
+  btn.style.background = 'var(--accent)';
+  btn.innerHTML = '➤';
+  btn.title = 'Enviar mensaje';
 }
 
 function showResponse(text, provider) {
@@ -1475,6 +2721,12 @@ function handleToolEvent(event) {
     const resultEl = document.querySelector(`#tool-result-${event.confirmId || ''}`);
     if (resultEl) resultEl.textContent = event.result;
   } else if (event.type === 'needs_confirmation') {
+    // Si ya aceptamos todo esta sesión, confirmamos automáticamente
+    if (sessionAutoExec) {
+        confirmTool(event.confirmId);
+        return;
+    }
+
     // Guardar args de forma segura en memoria, no en HTML
     pendingToolData[event.confirmId] = { toolName: event.name, args: event.args };
 
@@ -1485,12 +2737,19 @@ function handleToolEvent(event) {
       <div class="tool-header">🤖 moshiClaw quiere ejecutar:</div>
       <div class="tool-cmd">$ ${escapeHtml(event.args.command || JSON.stringify(event.args))}</div>
       <div class="tool-actions">
-        <button class="btn-confirm btn-confirm-action">✓ Ejecutar</button>
-        <button class="btn-cancel-tool btn-cancel-action">✕ Cancelar</button>
+        <button class="btn-confirm btn-confirm-action" title="Aceptar esta vez">✓ Aceptar</button>
+        <button class="btn-confirm btn-confirm-all" style="background:var(--accent2); color:white" title="Aceptar todos los comandos de esta sesión">✓ Aceptar Todo</button>
+        <button class="btn-cancel-tool btn-cancel-action" title="Denegar">✕ Negar</button>
       </div>
     `;
     card.querySelector('.btn-confirm-action').addEventListener('click', () => {
       confirmTool(event.confirmId);
+    });
+    card.querySelector('.btn-confirm-all').addEventListener('click', () => {
+      if (confirm('¿Seguro que querés permitir todos los comandos de esta sesión sin preguntar?')) {
+          sessionAutoExec = true;
+          confirmTool(event.confirmId);
+      }
     });
     card.querySelector('.btn-cancel-action').addEventListener('click', () => {
       cancelTool(event.confirmId);
@@ -1529,6 +2788,13 @@ function escapeHtml(text) {
 
 function sendChatMessage() {
   const input = qs('#chat-input');
+  
+  // If we are thinking, the button acts as STOP
+  if (pendingThinkingEl) {
+    stopChatResponse();
+    return;
+  }
+
   const msg = input.value.trim();
   if (!msg) return;
 
@@ -1540,7 +2806,7 @@ function sendChatMessage() {
   addMessage(msg, 'user');
   input.value = '';
   input.style.height = 'auto';
-  qs('#btn-send-chat').disabled = true;
+  // Note: We don't disable it here because it will be transformed/handled by showThinking
 
   if (eventsWS && eventsWS.readyState === WebSocket.OPEN) {
     eventsWS.send(JSON.stringify({
@@ -1550,7 +2816,7 @@ function sendChatMessage() {
       model: settings.model,
       apiKey: settings.apiKey,
       sessionId: chatSessionId,
-      autoExecute: autoExec
+      autoExecute: autoExec || sessionAutoExec
     }));
   } else {
     addMessage('Sin conexión al servidor.', 'system');
@@ -1558,13 +2824,60 @@ function sendChatMessage() {
   }
 }
 
+function clearChatHistory() {
+  if (!confirm('¿Seguro que querés limpiar el historial de este chat?')) return;
+  if (eventsWS && eventsWS.readyState === WebSocket.OPEN) {
+    eventsWS.send(JSON.stringify({ type: 'clear_chat', sessionId: chatSessionId }));
+  }
+  // Limpiar estado persistente
+  chatHistory = [];
+  localStorage.removeItem('oc_chat');
+  chatSessionId = 'session_' + Date.now();
+  localStorage.setItem('oc_session_id', chatSessionId);
+  qs('#chat-messages').innerHTML = '<div class="msg system">Historial limpiado.</div>';
+  sessionAutoExec = false; // Reset session permissions too
+}
+
+function stopChatResponse() {
+  if (eventsWS && eventsWS.readyState === WebSocket.OPEN) {
+    eventsWS.send(JSON.stringify({ type: 'stop_chat', sessionId: chatSessionId }));
+  }
+  removeThinking();
+  addMessage('Respuesta detenida por el usuario.', 'system');
+  qs('#btn-send-chat').disabled = false;
+}
+
 // ─── SETTINGS ─────────────────────────────────────────────────────────────────
 function openSettings() {
   qs('#cfg-provider').value = settings.provider || 'gemini';
-  qs('#cfg-model').value = settings.model || '';
   qs('#cfg-apikey').value = settings.apiKey || '';
+  
+  // Sync model dropdown
+  const modelSelect = qs('#cfg-model-select');
+  const manualInput = qs('#cfg-model');
+  const currentModel = settings.model || 'gemini-2.0-flash';
+  
+  let found = false;
+  for (let opt of modelSelect.options) {
+      if (opt.value === currentModel) {
+          modelSelect.value = currentModel;
+          found = true;
+          break;
+      }
+  }
+  
+  if (!found) {
+      modelSelect.value = 'custom';
+      manualInput.value = currentModel;
+      qs('#manual-model-group').style.display = 'block';
+  } else {
+      qs('#manual-model-group').style.display = 'none';
+  }
+
   const toggle = qs('#toggle-autoexec');
   toggle.classList.toggle('on', !!settings.autoExec);
+  const toggleCC = qs('#toggle-claudecode');
+  if (toggleCC) toggleCC.classList.toggle('on', !!settings.claudeCode);
   qs('#settings-modal').classList.add('open');
 }
 
@@ -1574,11 +2887,20 @@ function closeSettings() {
 
 function saveSettings() {
   settings.provider = qs('#cfg-provider').value;
-  settings.model = qs('#cfg-model').value.trim();
+  
+  const modelSelect = qs('#cfg-model-select');
+  if (modelSelect.value === 'custom') {
+      settings.model = qs('#cfg-model').value.trim();
+  } else {
+      settings.model = modelSelect.value;
+  }
+
   settings.apiKey = qs('#cfg-apikey').value.trim();
   settings.autoExec = qs('#toggle-autoexec').classList.contains('on');
   autoExec = settings.autoExec;
+  settings.claudeCode = qs('#toggle-claudecode').classList.contains('on');
   localStorage.setItem('oc_settings', JSON.stringify(settings));
+  applyClaudeCodeSetting();
   closeSettings();
   addMessage('✓ Configuración guardada.', 'system');
 }
@@ -1587,6 +2909,7 @@ function saveSettings() {
 function renderMarkdown(text) {
   return text
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1"><a href="$2" download class="download-link">Descargar imagen</a>')
     .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
@@ -1619,12 +2942,17 @@ function setupViewportFix() {
       const kbHeight = Math.max(0, window.innerHeight - vv.height - offsetTop);
       const isKeyboardOpen = kbHeight > 50;
 
-      // Compensar scroll del viewport en iOS → header queda estático
-      app.style.top = offsetTop + 'px';
-      // Ajustar el alto del app al viewport VISIBLE (sobre el teclado).
-      // Esto es clave: vv.height es solo la parte visible, no incluye
-      // el espacio detrás del teclado virtual.
-      app.style.height = vv.height + 'px';
+      if (isKeyboardOpen) {
+        // Teclado abierto: ajustar al viewport visible para que el input
+        // quede justo sobre el teclado (estilo WhatsApp).
+        app.style.top    = offsetTop + 'px';
+        app.style.height = vv.height + 'px';
+      } else {
+        // Sin teclado: dejar que position:fixed + inset:0 + 100dvh
+        // ocupen todo el alto de pantalla de borde a borde.
+        app.style.top    = '';
+        app.style.height = '';
+      }
 
       app.classList.toggle('keyboard-open', isKeyboardOpen);
 

@@ -8,16 +8,17 @@ const ramHistory = [];
 
 async function getStats() {
   try {
-    const [cpu, mem, disks, temp, network, os] = await Promise.all([
+    const [cpuLoad, mem, disks, temp, network, os, cpuInfo] = await Promise.all([
       si.currentLoad(),
       si.mem(),
       si.fsSize(),
       si.cpuTemperature().catch(() => ({ main: null })),
       si.networkStats().catch(() => []),
-      si.osInfo().catch(() => ({}))
+      si.osInfo().catch(() => ({})),
+      si.cpu().catch(() => ({}))
     ]);
 
-    const cpuUsage = Math.round(cpu.currentLoad);
+    const cpuUsage = Math.round(cpuLoad.currentLoad);
     const ramUsed = Math.round((mem.used / mem.total) * 100);
 
     // Guardar historial
@@ -39,12 +40,16 @@ async function getStats() {
     // Red (primer adaptador activo)
     const netIface = network.find(n => n.rx_sec > 0 || n.tx_sec > 0) || network[0] || {};
 
+    const system = await si.system().catch(() => ({}));
+    const graphics = await si.graphics().catch(() => ({}));
+
     return {
       cpu: {
         usage: cpuUsage,
         temp: temp.main ? Math.round(temp.main) : null,
-        cores: cpu.cpus ? cpu.cpus.length : null,
-        history: [...cpuHistory]
+        cores: cpuInfo.cores || null,
+        history: [...cpuHistory],
+        model: (cpuInfo.manufacturer || '') + ' ' + (cpuInfo.brand || '')
       },
       ram: {
         percent: ramUsed,
@@ -65,6 +70,11 @@ async function getStats() {
         release: os.release || '',
         hostname: os.hostname || ''
       },
+      hardware: {
+        model: system.model || 'Unknown',
+        manufacturer: system.manufacturer || 'Unknown',
+        gpu: graphics.controllers && graphics.controllers[0] ? graphics.controllers[0].model : 'N/A'
+      },
       timestamp: Date.now()
     };
   } catch (err) {
@@ -81,22 +91,28 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
+const { exec } = require('child_process');
+
 async function getProcesses() {
-  try {
-    const procs = await si.processes();
-    return procs.list
-      .sort((a, b) => b.pcpu - a.pcpu)
-      .slice(0, 15)
-      .map(p => ({
-        pid: p.pid,
-        name: p.name,
-        cpu: p.pcpu,
-        mem: p.pmem,
-        memRss: formatBytes(p.mem_rss * 1024)
-      }));
-  } catch (err) {
-    return [];
-  }
+  return new Promise((resolve) => {
+    // ps aux gives reliable CPU/MEM% values across all Linux distros
+    exec("ps aux --sort=-%cpu --no-header | head -16 | awk '{print $2, $3, $4, $11}'", (err, stdout) => {
+      if (err) return resolve([]);
+      const lines = stdout.trim().split('\n').filter(Boolean);
+      const procs = lines.map(line => {
+        const parts = line.trim().split(/\s+/);
+        return {
+          pid:  parseInt(parts[0]) || 0,
+          cpu:  parseFloat(parts[1]) || 0,
+          mem:  parseFloat(parts[2]) || 0,
+          name: (parts[3] || 'unknown').split('/').pop().substring(0, 20)
+        };
+      })
+      .filter(p => p.pid > 0)
+      .slice(0, 15);
+      resolve(procs);
+    });
+  });
 }
 
 module.exports = { getStats, getProcesses };
