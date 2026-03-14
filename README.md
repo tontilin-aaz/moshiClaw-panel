@@ -125,6 +125,20 @@ Dentro de la PWA, toca el ícono de engranaje (⚙️) para configurar:
 
 ---
 
+## 🤖 Claude Code y Multi-Agentes (Experimental)
+
+moshiClaw incluye una interfaz avanzada para ejecutar **Claude Code** en múltiples directorios de forma persistente:
+
+- **Múltiples Sesiones:** Abre diferentes agentes en carpetas específicas de tu proyecto.
+- **Detección de Estado:** El panel detecta automáticamente cuando un agente está trabajando, esperando confirmación o ha terminado.
+- **Notificaciones Nativas:** Recibe una notificación en tu móvil cuando un agente requiere tu atención (usa `y/n`) o completa una tarea en segundo plano.
+- **Persistencia:** Las sesiones de los agentes se mantienen activas incluso si cierras la pestaña, permitiendo retomar el trabajo más tarde.
+
+> [!TIP]
+> Para activar esta sección, ve a **Configuración (⚙️)** y habilita la opción **"Claude Code en navbar"**. Asegúrate de tener `npx` disponible en tu servidor.
+
+---
+
 ## 🔒 Seguridad del Panel
 
 - Todo el proceso corre bajo autenticación JWT con expiraciones configurables.
