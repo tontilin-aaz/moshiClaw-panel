@@ -132,8 +132,10 @@ wsEvents.on('connection', (ws, req, user) => {
     } else if (data.type === 'cancel_tool') {
       ai.cancelToolExecution(data.confirmId);
     } else if (data.type === 'clear_chat') {
+        ai.abortChat(data.sessionId || user.user);
         ai.clearHistory(data.sessionId || user.user);
     } else if (data.type === 'stop_chat') {
+        ai.abortChat(data.sessionId || user.user);
         activeAiRequests.delete(data.sessionId || user.user);
     } else if (data.type === 'browser') {
         // Acciones de navegador

@@ -22,6 +22,11 @@ let _saveTimer = null;
 // Historial de conversación por sesión
 const chatHistories = new Map();
 const sessionApiKeys = new Map(); // Store API key per session for tool execution
+const abortSignals = new Map(); // Store abort state per session
+
+function abortChat(sessionId) {
+  abortSignals.set(sessionId, true);
+}
 
 function loadPersistedHistories() {
   try {
@@ -107,6 +112,9 @@ async function chatWithGemini(apiKey, selectedModel, message, sessionId, autoExe
 
   const chat = model.startChat({ history });
 
+  // Indicar que esta sesión NO está abortada
+  abortSignals.delete(sessionId);
+
   let result = await chat.sendMessage(message);
   let response = result.response;
 
@@ -114,6 +122,12 @@ async function chatWithGemini(apiKey, selectedModel, message, sessionId, autoExe
   let calls = (typeof response.functionCalls === 'function') ? response.functionCalls() : [];
   let _toolCounter = 0;
   while (calls && calls.length > 0) {
+    // VERIFICAR ABORTADO
+    if (abortSignals.get(sessionId)) {
+      abortSignals.delete(sessionId);
+      return 'Ejecución cancelada por el usuario.';
+    }
+
     const functionResponses = [];
 
     for (const call of calls) {
@@ -178,6 +192,9 @@ async function chatWithDeepSeek(apiKey, selectedModel, message, sessionId, autoE
 
   const tools = aiTools.getOpenAITools();
 
+  // Indicar que esta sesión NO está abortada
+  abortSignals.delete(sessionId);
+
   let response = await client.chat.completions.create({
     model: selectedModel || 'deepseek-chat',
     messages,
@@ -190,6 +207,12 @@ async function chatWithDeepSeek(apiKey, selectedModel, message, sessionId, autoE
   // Loop de tool calls
   let _dsToolCounter = 0;
   while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+    // VERIFICAR ABORTADO
+    if (abortSignals.get(sessionId)) {
+      abortSignals.delete(sessionId);
+      return 'Ejecución cancelada por el usuario.';
+    }
+
     messages.push(assistantMessage);
 
     for (const toolCall of assistantMessage.tool_calls) {
@@ -254,6 +277,9 @@ async function chatWithOllama(selectedModel, message, sessionId, autoExecute, on
   // Ollama soporta tool_calls en modelos recientes; si falla, se degrada a sin tools
   const tools = aiTools.getOpenAITools();
 
+  // Indicar que esta sesión NO está abortada
+  abortSignals.delete(sessionId);
+
   let response;
   try {
     response = await client.chat.completions.create({
@@ -276,6 +302,12 @@ async function chatWithOllama(selectedModel, message, sessionId, autoExecute, on
   // Loop de tool calls
   let _ollamaToolCounter = 0;
   while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+    // VERIFICAR ABORTADO
+    if (abortSignals.get(sessionId)) {
+      abortSignals.delete(sessionId);
+      return { content: 'Ejecución cancelada por el usuario.', thinking: '' };
+    }
+
     messages.push(assistantMessage);
 
     for (const toolCall of assistantMessage.tool_calls) {
@@ -556,4 +588,4 @@ Reglas:
   return prompt;
 }
 
-module.exports = { chat, clearHistory, executeConfirmedTool, cancelToolExecution, PROVIDERS };
+module.exports = { chat, clearHistory, executeConfirmedTool, cancelToolExecution, abortChat, PROVIDERS };

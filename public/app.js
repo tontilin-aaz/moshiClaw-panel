@@ -2255,10 +2255,15 @@ function clearChatHistory() {
   // Limpiar estado persistente
   chatHistory = [];
   localStorage.removeItem('oc_chat');
+  const oldSessionId = chatSessionId;
   chatSessionId = 'session_' + Date.now();
   localStorage.setItem('oc_session_id', chatSessionId);
   qs('#chat-messages').innerHTML = '<div class="msg system">Historial limpiado.</div>';
   sessionAutoExec = false; // Reset session permissions too
+  
+  // Detener visualmente
+  removeThinking();
+  qs('#btn-send-chat').disabled = false;
 }
 
 function stopChatResponse() {

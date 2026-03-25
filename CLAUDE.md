@@ -158,8 +158,12 @@ El módulo `ai.js` implementa un loop de tool calls multi-proveedor (Gemini, Dee
 | Buffer pequeño (512KB) | Comandos complejos fallan silenciosamente | `maxBuffer: 10MB` en `executeCommand` |
 | Heredocs en bash | Fallan con caracteres especiales | `write_file` tool como reemplazo confiable |
 | Tarjetas de confirmación sin resultado | "✓ Ejecutando..." para siempre | `toolId` en `needs_confirmation`, resultado actualiza la tarjeta |
+| Bucle infinito de tools / peticiones largas | No se podía detener la IA una vez iniciada | Mecanismo de **Abort Signals**: `abortChat(sessionId)` marca la sesión y el loop de tools se detiene en la siguiente iteración. |
 
-### Persistencia del historial
+### Control de Ejecución (Abort/Cancel)
+- **Función**: `abortChat(sessionId)` en `modules/ai.js`.
+- **Funcionamiento**: Cada loop de herramientas (Gemini, DeepSeek, Ollama) verifica `abortSignals.get(sessionId)` antes de ejecutar la siguiente herramienta. Si es `true`, limpia el señal y retorna un mensaje de "Ejecución cancelada".
+- **Gatillos**: Se activa automáticamente desde `server.js` al recibir los eventos de WebSocket `clear_chat` o `stop_chat`.
 - Archivo: `data/chat_sessions.json` (excluido de git via `.gitignore`)
 - Guardado automático con debounce de 1.5s después de cada conversación
 - Datos binarios grandes (imágenes base64) se reemplazan por placeholder para no inflar el archivo
