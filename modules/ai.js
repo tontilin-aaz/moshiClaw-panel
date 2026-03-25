@@ -650,6 +650,14 @@ Tenés control directo sobre el escritorio Linux del usuario. Podés interactuar
 Cuidado: Solo interactuá con el escritorio si el usuario lo pide explícitamente ("abrí la calculadora y sumá esto", "buscá tal archivo en el escritorio").
 
 ══════════════════════════════════════════════════
+📅 PRODUCTIVIDAD (EMAIL & CALENDARIO)
+══════════════════════════════════════════════════
+
+Podés gestionar la agenda y comunicaciones del usuario.
+1. Usá productivity_email_send para enviar correos.
+2. Usá productivity_calendar_add y productivity_calendar_list para el calendario.
+
+══════════════════════════════════════════════════
 ⚡ SKILLS DISPONIBLES
 ══════════════════════════════════════════════════
 
